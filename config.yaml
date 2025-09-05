@@ -1,0 +1,35 @@
+server:
+  listen_host: "127.0.0.1"
+  listen_port: 8080
+  webhook_path: "/webhook"
+
+webclient:
+  timeout: 30
+  max_retries: 3
+  retry_delay: 5      
+                        # in seconds
+permata_bank_login:
+  permata_static_key: "WD628b40f7f480f6445279eeb9b76003"
+  api_key: "b6e1231e-3f15-48f1-aed6-d72986ea1ce9"
+
+  # token_url: "https://api.pbdevtest.com/apiservice/oauth/token"
+  token_url: "https://webhook.site/e79d784e-2779-42d5-8672-234e2430282b"
+  username: "73e843cd-0b28-4f98-a262-b5dbdf9ee549"
+  password: "2d45705c-e992-4bd8-b7fe-7d2d1dc6c4c1"
+  login_payload: "grant_type=client_credentials"
+  oauth_timestamp: "2024-04-25T13:52:01.000+07:00"
+
+permata_bank_webhook:
+  # callbackstatus_url: "https://api.pbdevtest.com/apiservice/wa/callbackstatus" 
+  callbackstatus_url: "https://webhook.site/8282976c-bd91-49b3-93ed-86ef25069190" 
+  organizationname: "WD62876003"
+  permata_timestamp: "2024-04-25T13:52:01.000+07:00"
+
+logger:
+  dir: log/                    
+  file_name: webhook-gateway
+  max_backups: 0                            # set 0 for unlimited backups
+  max_size: 10                              # in mb
+  max_age: 90                               # in days, set 0 for unlimited days
+  compress: true
+  local_time: true

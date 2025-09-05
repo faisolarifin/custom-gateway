@@ -1,0 +1,196 @@
+use async_trait::async_trait;
+use http_body_util::{BodyExt, Full};
+use hyper::body::Bytes;
+use hyper::server::conn::http1;
+use hyper::service::service_fn;
+use hyper::{Method, Request, Response, StatusCode};
+use hyper_util::rt::TokioIo;
+use std::convert::Infallible;
+use std::net::SocketAddr;
+use std::sync::Arc;
+use tokio::net::TcpListener;
+use tracing::{error, info};
+use uuid::Uuid;
+
+use crate::config::ServerConfig;
+use crate::services::WebhookProcessorTrait;
+use crate::utils::error::{AppError, Result};
+use crate::providers::logging::StructuredLogger;
+
+#[async_trait]
+pub trait WebhookServerTrait {
+    async fn start(&self) -> Result<()>;
+    async fn shutdown(&self) -> Result<()>;
+}
+
+#[derive(Clone)]
+pub struct WebhookServer {
+    config: ServerConfig,
+    processor: Arc<dyn WebhookProcessorTrait + Send + Sync>,
+}
+
+impl WebhookServer {
+    pub fn new(config: ServerConfig, processor: Arc<dyn WebhookProcessorTrait + Send + Sync>) -> Self {
+        Self { config, processor }
+    }
+
+    async fn handle_webhook(
+        &self,
+        req: Request<hyper::body::Incoming>,
+    ) -> std::result::Result<Response<Full<Bytes>>, Infallible> {
+        let request_id = format!("req-{}", Uuid::new_v4());
+        
+        StructuredLogger::log_info(
+            "Received webhook request",
+            Some(&request_id),
+            Some(&request_id),
+            Some(serde_json::json!({
+                "method": req.method().as_str(),
+                "uri": req.uri().to_string(),
+                "headers": req.headers().len()
+            })),
+        );
+
+        let response = match (req.method(), req.uri().path()) {
+            (&Method::POST, path) if path == self.config.webhook_path => {
+                self.process_webhook(req, &request_id).await
+            }
+            (&Method::GET, "/health") => {
+                Ok(Response::builder()
+                    .status(StatusCode::OK)
+                    .body(Full::new(Bytes::from("OK")))
+                    .unwrap())
+            }
+            _ => {
+                StructuredLogger::log_info(
+                    "Webhook path not found",
+                    Some(&request_id),
+                    Some(&request_id),
+                    None,
+                );
+                Ok(Response::builder()
+                    .status(StatusCode::NOT_FOUND)
+                    .body(Full::new(Bytes::from("Not Found")))
+                    .unwrap())
+            }
+        };
+
+        response
+    }
+
+    async fn process_webhook(
+        &self,
+        req: Request<hyper::body::Incoming>,
+        request_id: &str,
+    ) -> std::result::Result<Response<Full<Bytes>>, Infallible> {
+        // Extract headers for forwarding
+        let headers = req.headers().clone();
+        
+        // Read the body
+        let body_bytes = match req.collect().await {
+            Ok(body) => body.to_bytes(),
+            Err(e) => {
+                StructuredLogger::log_error(
+                    &format!("Failed to read request body: {}", e),
+                    Some(request_id),
+                    Some(request_id),
+                );
+                return Ok(Response::builder()
+                    .status(StatusCode::BAD_REQUEST)
+                    .body(Full::new(Bytes::from("Bad Request")))
+                    .unwrap());
+            }
+        };
+
+        // Create webhook message for processing
+        let webhook_data = crate::models::WebhookMessage {
+            headers: headers.iter()
+                .map(|(k, v)| (k.as_str().to_string(), v.to_str().unwrap_or("").to_string()))
+                .collect(),
+            body: String::from_utf8_lossy(&body_bytes).to_string(),
+        };
+
+        // Process the webhook
+        if let Err(e) = self.processor.process_webhook(webhook_data, request_id).await {
+            StructuredLogger::log_error(
+                &format!("Failed to process webhook: {}", e),
+                Some(request_id),
+                Some(request_id),
+            );
+            return Ok(Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .body(Full::new(Bytes::from("Internal Server Error")))
+                .unwrap());
+        }
+
+        StructuredLogger::log_info(
+            "Webhook processed successfully",
+            Some(request_id),
+            Some(request_id),
+            None,
+        );
+
+        Ok(Response::builder()
+            .status(StatusCode::OK)
+            .body(Full::new(Bytes::from("OK")))
+            .unwrap())
+    }
+}
+
+#[async_trait]
+impl WebhookServerTrait for WebhookServer {
+    async fn start(&self) -> Result<()> {
+        let addr: SocketAddr = format!("{}:{}", self.config.listen_host, self.config.listen_port)
+            .parse()
+            .map_err(|e| AppError::configuration(format!("Invalid server address: {}", e)))?;
+
+        let listener = TcpListener::bind(addr)
+            .await
+            .map_err(|e| AppError::configuration(format!("Failed to bind to address {}: {}", addr, e)))?;
+
+        info!("Webhook server listening on {}", addr);
+        StructuredLogger::log_info(
+            "Webhook server started",
+            None,
+            None,
+            Some(serde_json::json!({
+                "address": addr.to_string(),
+                "webhook_path": self.config.webhook_path
+            })),
+        );
+
+        loop {
+            let (stream, peer_addr) = match listener.accept().await {
+                Ok(conn) => conn,
+                Err(e) => {
+                    error!("Failed to accept connection: {}", e);
+                    continue;
+                }
+            };
+
+            let io = TokioIo::new(stream);
+            let server_clone = self.clone();
+
+            tokio::task::spawn(async move {
+                let service = service_fn(move |req| {
+                    let server = server_clone.clone();
+                    async move { server.handle_webhook(req).await }
+                });
+
+                if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
+                    error!("Error serving connection from {}: {}", peer_addr, err);
+                }
+            });
+        }
+    }
+
+    async fn shutdown(&self) -> Result<()> {
+        StructuredLogger::log_info(
+            "Webhook server shutting down",
+            None,
+            None,
+            None,
+        );
+        Ok(())
+    }
+}
