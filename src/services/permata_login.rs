@@ -9,12 +9,14 @@ use crate::config::{AppConfig, PermataBankLoginConfig};
 use crate::models::TokenResponse;
 use crate::providers::StructuredLogger;
 use crate::utils::{error::Result, generate_signature};
+use crate::services::TokenScheduler;
 
 #[derive(Clone)]
 pub struct LoginHandler {
     client: Client,
     config: AppConfig,
     token_cache: Arc<Mutex<HashMap<String, CachedToken>>>,
+    token_scheduler: TokenScheduler,
 }
 
 #[derive(Debug, Clone)]
@@ -29,12 +31,20 @@ impl LoginHandler {
         let client = Client::builder()
             .timeout(timeout)
             .build()?;
+        
+        let scheduler = TokenScheduler::with_config(config.scheduler.clone());
 
-        Ok(Self {
+        let handler = Self {
             client,
             config,
             token_cache: Arc::new(Mutex::new(HashMap::new())),
-        })
+            token_scheduler: scheduler,
+        };
+        
+        // Start periodic scheduler immediately
+        handler.start_periodic_token_refresh();
+        
+        Ok(handler)
     }
 
     pub async fn get_token(&self) -> Result<String> {
@@ -81,7 +91,39 @@ impl LoginHandler {
             cache.insert(cache_key.to_string(), cached_token);
         }
 
+        // Periodic scheduler sudah berjalan, tidak perlu start manual scheduler
+
         Ok(token_response.access_token)
+    }
+
+    fn start_periodic_token_refresh(&self) {
+        let cache = Arc::clone(&self.token_cache);
+        let handler_clone = self.clone();
+
+        // Start periodic scheduler yang berjalan setiap 15 menit (atau sesuai config)
+        self.token_scheduler.start_scheduler(move || {
+            let cache_clone = Arc::clone(&cache);
+            let handler_clone = handler_clone.clone();
+            
+            async move {
+                StructuredLogger::log_info(
+                    "Periodic token refresh triggered - clearing cache and fetching new token",
+                    None,
+                    None,
+                    None,
+                );
+                
+                // Clear cache dan fetch token baru
+                {
+                    let mut cache_guard = cache_clone.lock().unwrap();
+                    cache_guard.clear();
+                }
+                
+                // Trigger token refresh dengan call get_token
+                handler_clone.get_token_with_context(None, Some("scheduler")).await
+                    .map(|_| ())
+            }
+        });
     }
 
     async fn login_with_context(&self, unique_id: Option<&str>, request_id: Option<&str>) -> Result<TokenResponse> {
@@ -126,8 +168,7 @@ impl LoginHandler {
 
     async fn make_login_request_with_context(&self, config: &PermataBankLoginConfig, unique_id: Option<&str>, request_id: Option<&str>) -> Result<TokenResponse> {
         // Generate timestamp for this request
-        // let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3f+07:00").to_string();
-        let timestamp = &config.oauth_timestamp;
+        let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3f+07:00").to_string();
         
         // Create Basic Auth header (base64 encode username:password)
         let auth_string = format!("{}:{}", config.username, config.password);
@@ -189,5 +230,32 @@ impl LoginHandler {
             request_id,
             None,
         );
+        
+        // Stop scheduler saat clear cache manual
+        self.token_scheduler.stop_scheduler();
+    }
+
+    pub fn stop_scheduler(&self) {
+        self.token_scheduler.stop_scheduler();
+    }
+
+    // Method untuk check status scheduler
+    pub fn is_scheduler_active(&self) -> bool {
+        self.token_scheduler.is_scheduler_active()
+    }
+
+    pub fn get_scheduler_info(&self) -> Option<String> {
+        self.token_scheduler.get_scheduler_info()
+    }
+
+    // Method untuk shutdown gracefully
+    pub async fn shutdown(&self) {
+        StructuredLogger::log_info(
+            "Shutting down LoginHandler and stopping scheduler",
+            None,
+            None,
+            None,
+        );
+        self.token_scheduler.shutdown();
     }
 }

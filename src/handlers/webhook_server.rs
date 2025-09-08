@@ -55,11 +55,8 @@ impl WebhookServer {
             (&Method::POST, path) if path == self.config.webhook_path => {
                 self.process_webhook(req, &request_id).await
             }
-            (&Method::GET, "/health") => {
-                Ok(Response::builder()
-                    .status(StatusCode::OK)
-                    .body(Full::new(Bytes::from("OK")))
-                    .unwrap())
+            (&Method::GET, path) if path == self.config.webhook_path => {
+                self.handle_health_check(&request_id).await
             }
             _ => {
                 StructuredLogger::log_info(
@@ -76,6 +73,30 @@ impl WebhookServer {
         };
 
         response
+    }
+
+
+    async fn handle_health_check(
+        &self,
+        request_id: &str,
+    ) -> std::result::Result<Response<Full<Bytes>>, Infallible> {
+        StructuredLogger::log_info(
+            "Health check request",
+            Some(request_id),
+            Some(request_id),
+            None,
+        );
+
+        let health_response = serde_json::json!({
+            "status": "success",
+            "message": "Application is healthy"
+        });
+
+        Ok(Response::builder()
+            .status(StatusCode::OK)
+            .header("content-type", "application/json")
+            .body(Full::new(Bytes::from(health_response.to_string())))
+            .unwrap())
     }
 
     async fn process_webhook(
@@ -111,29 +132,37 @@ impl WebhookServer {
         };
 
         // Process the webhook
-        if let Err(e) = self.processor.process_webhook(webhook_data, request_id).await {
-            StructuredLogger::log_error(
-                &format!("Failed to process webhook: {}", e),
-                Some(request_id),
-                Some(request_id),
-            );
-            return Ok(Response::builder()
-                .status(StatusCode::INTERNAL_SERVER_ERROR)
-                .body(Full::new(Bytes::from("Internal Server Error")))
-                .unwrap());
+        match self.processor.process_webhook(webhook_data, request_id).await {
+            Ok(webhook_response) => {
+                // Langsung gunakan HTTP status dan body dari Permata Bank
+                let http_status = StatusCode::from_u16(webhook_response.http_status)
+                    .unwrap_or(StatusCode::BAD_GATEWAY);
+                
+                StructuredLogger::log_info(
+                    &format!("Webhook processed with HTTP status {}", webhook_response.http_status),
+                    Some(request_id),
+                    Some(request_id),
+                    None,
+                );
+
+                Ok(Response::builder()
+                    .status(http_status)
+                    .header("content-type", "application/json")
+                    .body(Full::new(Bytes::from(webhook_response.body)))
+                    .unwrap())
+            }
+            Err(e) => {
+                StructuredLogger::log_error(
+                    &format!("Failed to process webhook: {}", e),
+                    Some(request_id),
+                    Some(request_id),
+                );
+                Ok(Response::builder()
+                    .status(StatusCode::INTERNAL_SERVER_ERROR)
+                    .body(Full::new(Bytes::from("Internal Server Error")))
+                    .unwrap())
+            }
         }
-
-        StructuredLogger::log_info(
-            "Webhook processed successfully",
-            Some(request_id),
-            Some(request_id),
-            None,
-        );
-
-        Ok(Response::builder()
-            .status(StatusCode::OK)
-            .body(Full::new(Bytes::from("OK")))
-            .unwrap())
     }
 }
 

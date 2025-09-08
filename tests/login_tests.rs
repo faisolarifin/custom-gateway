@@ -1,4 +1,4 @@
-use webhook_gateway::config::{AppConfig, PermataBankLoginConfig, WebClientConfig, ServerConfig, PermataBankWebhookConfig, LoggerConfig};
+use webhook_gateway::config::{AppConfig, PermataBankLoginConfig, WebClientConfig, ServerConfig, PermataBankWebhookConfig, LoggerConfig, SchedulerConfig};
 use webhook_gateway::services::LoginHandler;
 
 fn create_test_config() -> AppConfig {
@@ -20,12 +20,13 @@ fn create_test_config() -> AppConfig {
             username: "test_user".to_string(),
             password: "test_pass".to_string(),
             login_payload: "grant_type=client_credentials".to_string(),
-            oauth_timestamp: "2024-04-25T13:52:01.000+07:00".to_string(),
         },
         permata_bank_webhook: PermataBankWebhookConfig {
             callbackstatus_url: "https://example.com".to_string(),
             organizationname: "test_org".to_string(),
-            permata_timestamp: "2024-04-25T13:52:01.000+07:00".to_string(),
+        },
+        scheduler: SchedulerConfig {
+            periodic_interval_mins: 15,
         },
         logger: LoggerConfig {
             dir: "log".to_string(),

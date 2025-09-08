@@ -5,25 +5,26 @@ server:
 
 webclient:
   timeout: 30
-  max_retries: 3
-  retry_delay: 5      
-                        # in seconds
+  max_retries: 1
+  retry_delay: 1       # in seconds
+
 permata_bank_login:
   permata_static_key: "WD628b40f7f480f6445279eeb9b76003"
   api_key: "b6e1231e-3f15-48f1-aed6-d72986ea1ce9"
 
   # token_url: "https://api.pbdevtest.com/apiservice/oauth/token"
-  token_url: "https://webhook.site/e79d784e-2779-42d5-8672-234e2430282b"
+  token_url: "https://webhook.site/14899f0f-d6fb-4562-b2b3-3d2f2a8a3b07"
   username: "73e843cd-0b28-4f98-a262-b5dbdf9ee549"
   password: "2d45705c-e992-4bd8-b7fe-7d2d1dc6c4c1"
   login_payload: "grant_type=client_credentials"
-  oauth_timestamp: "2024-04-25T13:52:01.000+07:00"
 
 permata_bank_webhook:
   # callbackstatus_url: "https://api.pbdevtest.com/apiservice/wa/callbackstatus" 
   callbackstatus_url: "https://webhook.site/8282976c-bd91-49b3-93ed-86ef25069190" 
   organizationname: "WD62876003"
-  permata_timestamp: "2024-04-25T13:52:01.000+07:00"
+
+scheduler:
+  periodic_interval_mins: 3          # Run scheduler every 15 minutes
 
 logger:
   dir: log/                    

@@ -5,7 +5,7 @@ use tracing::info;
 
 use webhook_gateway::{
     config::AppConfig,
-    services::WebhookProcessor,
+    services::{WebhookProcessor, WebhookProcessorTrait},
     handlers::{WebhookServer, WebhookServerTrait},
     providers::StructuredLogger,
 };
@@ -25,7 +25,8 @@ async fn main() -> Result<()> {
     info!("Starting Webhook Gateway Application");
     
     let webhook_processor = WebhookProcessor::new(config.clone())?;
-    let webhook_server = WebhookServer::new(config.server.clone(), Arc::new(webhook_processor));
+    let webhook_processor_arc: Arc<dyn WebhookProcessorTrait + Send + Sync> = Arc::new(webhook_processor.clone());
+    let webhook_server = WebhookServer::new(config.server.clone(), webhook_processor_arc);
 
     StructuredLogger::log_info(
         "Webhook Gateway Application started successfully",
@@ -85,6 +86,9 @@ async fn main() -> Result<()> {
             None,
         );
     }
+
+    // Stop the webhook processor (including token scheduler)
+    webhook_processor.shutdown().await;
 
     // Cancel the server task
     server_handle.abort();

@@ -9,6 +9,12 @@ use crate::models::PermataWebhookResponse;
 use crate::providers::StructuredLogger;
 use crate::utils::{error::Result, generate_signature, compact_json};
 
+#[derive(Debug, Clone)]
+pub struct HttpWebhookResponse {
+    pub status_code: u16,
+    pub body: String,
+}
+
 #[derive(Clone)]
 pub struct PermataCallbackStatusClient {
     client: Client,
@@ -95,133 +101,134 @@ impl PermataCallbackStatusClient {
         unique_id: Option<&str>,
         x_request_id: Option<&str>,
     ) -> Result<PermataWebhookResponse> {
-        // Try webhook request with current token, handle 403 with relogin
-        for retry_attempt in 0..2 { // Max 2 attempts: original + one retry after relogin
-            // Get access token (will handle refresh if needed)
-            let access_token = self.login_handler.get_token_with_context(unique_id, x_request_id).await?;
-            
-            // Generate timestamp for this request
-            // let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3f+07:00").to_string();
-            let timestamp = &config.permata_timestamp;
-            
-            // Generate signature using permata_static_key:timestamp:webhook_body
-            // First, compact the JSON to remove spaces and newlines
-            let compacted_body = compact_json(webhook_body)?;
-            let signature = generate_signature(
-                &self.config.permata_bank_login.permata_static_key,
-                &access_token,
-                &timestamp,
-                &compacted_body
-            )?;
+        // Send webhook request
+        // Get access token (will handle refresh if needed)
+        let access_token = self.login_handler.get_token_with_context(unique_id, x_request_id).await?;
+        
+        // Generate timestamp for this request
+        let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3f+07:00").to_string();
 
-            StructuredLogger::log_info(
-                &format!("Sending webhook to Permata Bank for request {} (attempt {})", request_id, retry_attempt + 1),
+        // Generate signature using permata_static_key:timestamp:webhook_body
+        // First, compact the JSON to remove spaces and newlines
+        let compacted_body = compact_json(webhook_body)?;
+        let signature = generate_signature(
+            &self.config.permata_bank_login.permata_static_key,
+            &access_token,
+            &timestamp,
+            &compacted_body
+        )?;
+
+        StructuredLogger::log_info(
+            &format!("Sending webhook to Permata Bank for request {}", request_id),
+            unique_id,
+            x_request_id,
+            None,
+        );
+        
+        let response = self.client
+            .post(&config.callbackstatus_url)
+            .header("Content-Type", "application/json")
+            .header("Authorization", format!("Bearer {}", access_token))
+            .header("permata-signature", signature)
+            .header("organizationname", &config.organizationname)
+            .header("permata-timestamp", timestamp)
+            .body(webhook_body.to_string())
+            .send()
+            .await?;
+
+        let status = response.status();
+        
+        // Handle non-success status codes by returning response as-is
+        if !status.is_success() {
+            let body = response.text().await.unwrap_or_default();
+            StructuredLogger::log_warning(
+                &format!("Permata webhook returned status {} for request {}: {}", status, request_id, body),
                 unique_id,
                 x_request_id,
-                None,
             );
             
-            let response = self.client
-                .post(&config.callbackstatus_url)
-                .header("Content-Type", "application/json")
-                .header("Authorization", format!("Bearer {}", access_token))
-                .header("permata-signature", signature)
-                .header("organizationname", &config.organizationname)
-                .header("permata-timestamp", timestamp)
-                .body(webhook_body.to_string())
-                .send()
-                .await?;
-
-            let status = response.status();
+            // For non-success responses, create a response that preserves the original HTTP status and body
+            let webhook_response = PermataWebhookResponse {
+                status_code: status.as_u16().to_string(),
+                status_desc: body,
+            };
             
-            // Handle 403 authentication errors specifically
-            if status == 403 {
-                let body = response.text().await.unwrap_or_default();
-                
-                // Check if this is the specific OAuth2 authentication failure
-                if body.contains("403") && body.contains("Failed Authentication OAuth2") {
-                    StructuredLogger::log_warning(
-                        &format!("Received 403 OAuth2 authentication error for request {}: {}", request_id, body),
-                        unique_id,
-                        x_request_id,
-                    );
-                    
-                    if retry_attempt == 0 {
-                        // Clear token cache and retry
-                        StructuredLogger::log_info(
-                            &format!("Clearing token cache and retrying login for request {}", request_id),
-                            unique_id,
-                            x_request_id,
-                            None,
-                        );
-                        self.login_handler.clear_cache_with_context(unique_id, x_request_id);
-                        continue; // Retry the request with new token
-                    } else {
-                        // Already retried once, return the error
-                        StructuredLogger::log_error(
-                            &format!("Authentication failed after relogin attempt for request {}: {}", request_id, body),
-                            unique_id,
-                            x_request_id,
-                        );
-                        return Err(crate::utils::error::AppError::authentication_failed(
-                            format!("Failed Authentication OAuth2 after relogin: {}", body)
-                        ));
-                    }
-                } else {
-                    // Other 403 errors, don't retry
-                    StructuredLogger::log_error(
-                        &format!("Permata webhook failed with 403 (non-OAuth2) for request {}: {}", request_id, body),
-                        unique_id,
-                        x_request_id,
-                    );
-                    return Err(crate::utils::error::AppError::message_processing(
-                        format!("Permata webhook failed: {} - {}", status, body)
-                    ));
-                }
-            }
-            
-            // Handle other non-success status codes
-            if !status.is_success() {
-                let body = response.text().await.unwrap_or_default();
-                StructuredLogger::log_error(
-                    &format!("Permata webhook failed with status {} for request {}: {}", status, request_id, body),
-                    unique_id,
-                    x_request_id,
-                );
-                return Err(crate::utils::error::AppError::message_processing(
-                    format!("Permata webhook failed: {} - {}", status, body)
-                ));
-            }
-
-            // Success case - parse response
-            let webhook_response: PermataWebhookResponse = response.json().await?;
-            
-            // Check if Permata Bank returned success
-            if webhook_response.status_code != "00" {
-                StructuredLogger::log_error(
-                    &format!("Permata Bank returned error for request {}: {} - {}", 
-                           request_id, webhook_response.status_code, webhook_response.status_desc),
-                    unique_id,
-                    x_request_id,
-                );
-                return Err(crate::utils::error::AppError::message_processing(
-                    format!("Permata Bank error: {} - {}", webhook_response.status_code, webhook_response.status_desc)
-                ));
-            }
-
-            StructuredLogger::log_info(
-                &format!("Permata webhook success for request {}: {}", request_id, webhook_response.status_desc),
-                unique_id,
-                x_request_id,
-                None,
-            );
             return Ok(webhook_response);
         }
+
+        // Success case - parse response
+        let webhook_response: PermataWebhookResponse = response.json().await?;
         
-        // Should never reach here due to the loop logic, but just in case
-        Err(crate::utils::error::AppError::message_processing(
-            "Unexpected error in webhook retry logic".to_string()
-        ))
+        StructuredLogger::log_info(
+            &format!("Permata webhook success for request {}: {}", request_id, webhook_response.status_desc),
+            unique_id,
+            x_request_id,
+            None,
+        );
+        
+        Ok(webhook_response)
+    }
+
+    // Method baru yang mengembalikan HTTP response langsung
+    pub async fn send_webhook_http(&self, webhook_body: &str, request_id: &str) -> Result<HttpWebhookResponse> {
+        self.send_webhook_http_with_context(webhook_body, request_id, Some(request_id), Some(request_id)).await
+    }
+
+    pub async fn send_webhook_http_with_context(&self, webhook_body: &str, request_id: &str, unique_id: Option<&str>, x_request_id: Option<&str>) -> Result<HttpWebhookResponse> {
+        // Send webhook request langsung return HTTP response
+        let access_token = self.login_handler.get_token_with_context(unique_id, x_request_id).await?;
+        
+        let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3f+07:00").to_string();
+        let compacted_body = compact_json(webhook_body)?;
+        let signature = generate_signature(
+            &self.config.permata_bank_login.permata_static_key,
+            &access_token,
+            &timestamp,
+            &compacted_body
+        )?;
+
+        StructuredLogger::log_info(
+            &format!("Sending webhook to Permata Bank for request {}", request_id),
+            unique_id,
+            x_request_id,
+            None,
+        );
+        
+        let response = self.client
+            .post(&self.config.permata_bank_webhook.callbackstatus_url)
+            .header("Content-Type", "application/json")
+            .header("Authorization", format!("Bearer {}", access_token))
+            .header("permata-signature", signature)
+            .header("organizationname", &self.config.permata_bank_webhook.organizationname)
+            .header("permata-timestamp", timestamp)
+            .body(webhook_body.to_string())
+            .send()
+            .await?;
+
+        let status_code = response.status().as_u16();
+        let body = response.text().await.unwrap_or_default();
+        
+        StructuredLogger::log_info(
+            &format!("Received HTTP {} from Permata Bank for request {}", status_code, request_id),
+            unique_id,
+            x_request_id,
+            None,
+        );
+        
+        Ok(HttpWebhookResponse {
+            status_code,
+            body,
+        })
+    }
+
+    pub async fn shutdown(&self) {
+        StructuredLogger::log_info(
+            "Shutting down PermataCallbackStatusClient",
+            None,
+            None,
+            None,
+        );
+        self.login_handler.shutdown().await;
     }
 
     fn is_authentication_error(&self, error: &crate::utils::error::AppError) -> bool {

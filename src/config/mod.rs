@@ -8,6 +8,7 @@ pub struct AppConfig {
     pub webclient: WebClientConfig,
     pub permata_bank_login: PermataBankLoginConfig,
     pub permata_bank_webhook: PermataBankWebhookConfig,
+    pub scheduler: SchedulerConfig,
     pub logger: LoggerConfig,
 }
 
@@ -33,14 +34,17 @@ pub struct PermataBankLoginConfig {
     pub username: String,
     pub password: String,
     pub login_payload: String,
-    pub oauth_timestamp: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PermataBankWebhookConfig {
     pub callbackstatus_url: String,
     pub organizationname: String,
-    pub permata_timestamp: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SchedulerConfig {
+    pub periodic_interval_mins: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

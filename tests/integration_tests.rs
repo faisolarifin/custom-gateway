@@ -59,12 +59,13 @@ async fn test_webhook_server_integration() {
                 username: "test".to_string(),
                 password: "test".to_string(),
                 login_payload: "test".to_string(),
-                oauth_timestamp: "test".to_string(),
             },
             permata_bank_webhook: PermataBankWebhookConfig {
                 callbackstatus_url: "https://test.com".to_string(),
                 organizationname: "test".to_string(),
-                permata_timestamp: "test".to_string(),
+            },
+            scheduler: SchedulerConfig {
+                periodic_interval_mins: 15,
             },
             logger: LoggerConfig {
                 dir: "log".to_string(),
@@ -108,12 +109,13 @@ async fn test_real_webhook_forwarding() {
                 username: "test".to_string(),
                 password: "test".to_string(),
                 login_payload: "test".to_string(),
-                oauth_timestamp: "test".to_string(),
             },
             permata_bank_webhook: PermataBankWebhookConfig {
                 callbackstatus_url: "https://httpbin.org/post".to_string(),
                 organizationname: "test".to_string(),
-                permata_timestamp: "test".to_string(),
+            },
+            scheduler: SchedulerConfig {
+                periodic_interval_mins: 15,
             },
             logger: LoggerConfig {
                 dir: "log".to_string(),

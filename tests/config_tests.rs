@@ -1,4 +1,4 @@
-use webhook_gateway::config::{AppConfig, ServerConfig, LoggerConfig, WebClientConfig, PermataBankLoginConfig, PermataBankWebhookConfig};
+use webhook_gateway::config::{AppConfig, ServerConfig, LoggerConfig, WebClientConfig, PermataBankLoginConfig, PermataBankWebhookConfig, SchedulerConfig};
 
 #[test]
 fn test_server_config_creation() {
@@ -65,13 +65,15 @@ fn test_app_config_creation() {
         username: "test_user".to_string(),
         password: "test_pass".to_string(),
         login_payload: "grant_type=client_credentials".to_string(),
-        oauth_timestamp: "2024-04-25T13:52:01.000+07:00".to_string(),
     };
 
     let webhook_config_pb = PermataBankWebhookConfig {
         callbackstatus_url: "https://test.com/callback".to_string(),
         organizationname: "test_org".to_string(),
-        permata_timestamp: "2024-04-25T13:52:01.000+07:00".to_string(),
+    };
+
+    let scheduler_config = SchedulerConfig {
+        periodic_interval_mins: 15,
     };
 
     let app_config = AppConfig {
@@ -80,6 +82,7 @@ fn test_app_config_creation() {
         webclient: webclient_config,
         permata_bank_login: login_config,
         permata_bank_webhook: webhook_config_pb,
+        scheduler: scheduler_config,
     };
 
     assert_eq!(app_config.server.listen_host, "0.0.0.0");
