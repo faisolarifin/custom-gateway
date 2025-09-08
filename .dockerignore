@@ -1,8 +1,45 @@
+# Build artifacts
 target/
+
+# Git
 .git/
 .gitignore
+
+# Documentation
 README.md
+*.md
+docs/
+
+# Docker files
 Dockerfile
 .dockerignore
+
+# Tests
 tests/
-docs/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local config (use config.yaml.example instead)
+config.yaml
+
+# Logs
+log/
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# Development tools
+.env
+.env.local
+.env.*.local

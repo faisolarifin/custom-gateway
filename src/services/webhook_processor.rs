@@ -57,14 +57,8 @@ impl WebhookProcessorTrait for WebhookProcessor {
         );
 
         // Send webhook to Permata Bank callback status URL
-        match self.permata_client.send_webhook_http_with_context(&webhook.body, request_id, Some(request_id), Some(request_id)).await {
+        match self.permata_client.send_webhook_with_context(&webhook.body, request_id, Some(request_id), Some(request_id)).await {
             Ok(http_response) => {
-                StructuredLogger::log_info(
-                    &format!("Webhook processed with HTTP status {}", http_response.status_code),
-                    Some(request_id),
-                    Some(request_id),
-                    None,
-                );
                 // Return langsung HTTP response dari Permata Bank
                 Ok(WebhookResponse {
                     http_status: http_response.status_code,

@@ -20,7 +20,7 @@ permata_bank_login:
 
 permata_bank_webhook:
   # callbackstatus_url: "https://api.pbdevtest.com/apiservice/wa/callbackstatus" 
-  callbackstatus_url: "https://webhook.site/56bb0b48-d698-4be0-b87d-094df9b66f33" 
+  callbackstatus_url: "https://webhook.site/8282976c-bd91-49b3-93ed-86ef25069190" 
   organizationname: "WD62876003"
 
 token_scheduler:

@@ -1,31 +1,47 @@
-FROM rust:1.75 AS builder
-
+# Multi-stage build untuk Rust webhook-gateway
+FROM rust:1.75-alpine AS builder
 WORKDIR /app
 
+# Install dependencies untuk compile Rust di Alpine
+RUN apk add --no-cache musl-dev pkgconfig openssl-dev
+
+# Copy Cargo.toml dan Cargo.lock untuk cache dependencies
 COPY Cargo.toml Cargo.lock ./
+
+# Create dummy main untuk cache dependencies
 RUN mkdir src && echo "fn main() {}" > src/main.rs
 RUN cargo build --release && rm src/main.rs
 
+# Copy source code
 COPY src ./src
-RUN touch src/main.rs
+
+# Build binary
 RUN cargo build --release
 
-FROM debian:bookworm-slim
-
-RUN apt-get update && apt-get install -y \
-    ca-certificates \
-    libssl3 \
-    && rm -rf /var/lib/apt/lists/*
-
+# Stage 2: Minimal runtime image
+FROM alpine:3.18
 WORKDIR /app
 
-COPY --from=builder /app/target/release/rabbitmq-consumer /app/rabbitmq-consumer
-COPY config.yaml /app/config.yaml
+# Install runtime dependencies
+RUN apk add --no-cache ca-certificates tzdata libgcc
+ENV TZ=Asia/Jakarta
 
-RUN useradd -r -u 1001 appuser
+# Copy binary dari builder stage
+COPY --from=builder /app/target/release/webhook-gateway ./webhook-gateway
+
+# Copy config example (akan di-override saat deployment)
+COPY config.yaml.example ./config.yaml
+
+# Create log directory
+RUN mkdir -p log
+
+# Create non-root user untuk security
+RUN adduser -D -u 1001 appuser
 RUN chown -R appuser:appuser /app
 USER appuser
 
+# Expose port
 EXPOSE 8080
 
-CMD ["./rabbitmq-consumer"]
+# Entry point
+CMD ["./webhook-gateway"]

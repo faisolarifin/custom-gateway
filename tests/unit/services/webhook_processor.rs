@@ -40,7 +40,7 @@ fn create_test_config() -> AppConfig {
             callbackstatus_url: "https://httpbin.org/post".to_string(),
             organizationname: "test_org".to_string(),
         },
-        scheduler: SchedulerConfig {
+        token_scheduler: SchedulerConfig {
             periodic_interval_mins: 15,
         },
         logger: LoggerConfig {

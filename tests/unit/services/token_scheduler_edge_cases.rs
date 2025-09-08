@@ -11,7 +11,7 @@ use std::time::Duration;
 use tokio::time::sleep;
 
 use webhook_gateway::services::{TokenScheduler, SchedulerConfig};
-use webhook_gateway::utils::error::{AppError, Result};
+use webhook_gateway::utils::error::AppError;
 
 #[tokio::test]
 async fn test_scheduler_callback_error_handling() {

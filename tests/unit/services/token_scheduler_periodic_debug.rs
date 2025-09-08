@@ -7,7 +7,7 @@ use webhook_gateway::services::{TokenScheduler, SchedulerConfig};
 
 #[tokio::test]
 async fn test_scheduler_runs_multiple_times() {
-    let config = SchedulerConfig {
+    let _config = SchedulerConfig {
         periodic_interval_mins: 1, // 1 minute for testing (will be converted to seconds in actual usage)
     };
     
@@ -49,10 +49,10 @@ async fn test_scheduler_runs_multiple_times() {
 
 #[tokio::test] 
 async fn test_scheduler_immediate_execution() {
-    let config = SchedulerConfig {
+    let _config = SchedulerConfig {
         periodic_interval_mins: 30, // Long interval, but should execute immediately
     };
-    let scheduler = TokenScheduler::with_config(config);
+    let scheduler = TokenScheduler::with_config(_config);
     
     let executed = Arc::new(AtomicUsize::new(0));
     let executed_clone = Arc::clone(&executed);

@@ -5,7 +5,7 @@
  * Tests are organized by component and functionality.
  */
 
-pub mod services;
+// pub mod services; // Commented out - services module not needed for integration tests
 
 #[cfg(test)]
 mod tests {

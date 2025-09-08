@@ -15,6 +15,7 @@ use uuid::Uuid;
 use crate::config::ServerConfig;
 use crate::services::WebhookProcessorTrait;
 use crate::utils::error::{AppError, Result};
+use crate::utils::json::{is_dr_payload, is_inbound_flow_payload};
 use crate::providers::logging::StructuredLogger;
 
 #[async_trait]
@@ -39,7 +40,7 @@ impl WebhookServer {
         req: Request<hyper::body::Incoming>,
     ) -> std::result::Result<Response<Full<Bytes>>, Infallible> {
         let request_id = format!("req-{}", Uuid::new_v4());
-        
+
         StructuredLogger::log_info(
             "Received webhook request",
             Some(&request_id),
@@ -75,6 +76,49 @@ impl WebhookServer {
         response
     }
 
+    fn should_process_payload(&self, body: &str, request_id: &str) -> bool {
+        match serde_json::from_str::<serde_json::Value>(body) {
+            Ok(json) => {
+                // Check for DR (Delivery Receipt) payload
+                if is_dr_payload(&json) {
+                    StructuredLogger::log_info(
+                        "Detected DR payload",
+                        Some(request_id),
+                        Some(request_id),
+                        None,
+                    );
+                    return true;
+                }
+                
+                // Check for Inbound Flow payload
+                if is_inbound_flow_payload(&json) {
+                    StructuredLogger::log_info(
+                        "Detected Inbound Flow payload",
+                        Some(request_id),
+                        Some(request_id),
+                        None,
+                    );
+                    return true;
+                }
+                
+                StructuredLogger::log_info(
+                    "Payload does not match DR or Inbound Flow criteria",
+                    Some(request_id),
+                    Some(request_id),
+                    None,
+                );
+                false
+            }
+            Err(e) => {
+                StructuredLogger::log_error(
+                    &format!("Failed to parse JSON payload: {}", e),
+                    Some(request_id),
+                    Some(request_id),
+                );
+                false
+            }
+        }
+    }
 
     async fn handle_health_check(
         &self,
@@ -123,12 +167,30 @@ impl WebhookServer {
             }
         };
 
+        // Parse JSON payload to determine if it's DR or Inbound Flow
+        let body_str = String::from_utf8_lossy(&body_bytes);
+        
+        // Check if payload should be processed
+        if !self.should_process_payload(&body_str, request_id) {
+            StructuredLogger::log_info(
+                "Ignore send payload to client",
+                Some(request_id),
+                Some(request_id),
+                None,
+            );
+            return Ok(Response::builder()
+                .status(StatusCode::OK)
+                .header("content-type", "application/json")
+                .body(Full::new(Bytes::from(r#"{"status": "success"}"#)))
+                .unwrap());
+        }
+
         // Create webhook message for processing
         let webhook_data = crate::models::WebhookMessage {
             headers: headers.iter()
                 .map(|(k, v)| (k.as_str().to_string(), v.to_str().unwrap_or("").to_string()))
                 .collect(),
-            body: String::from_utf8_lossy(&body_bytes).to_string(),
+            body: body_str.to_string(),
         };
 
         // Process the webhook

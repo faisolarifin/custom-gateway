@@ -32,7 +32,7 @@ impl LoginHandler {
             .timeout(timeout)
             .build()?;
         
-        let scheduler = TokenScheduler::with_config(config.scheduler.clone());
+        let scheduler = TokenScheduler::with_config(config.token_scheduler.clone());
 
         let handler = Self {
             client,

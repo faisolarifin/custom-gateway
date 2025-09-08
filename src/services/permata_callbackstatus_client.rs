@@ -3,9 +3,8 @@ use std::time::Duration;
 use reqwest::Client;
 use tokio::time::sleep;
 
-use crate::config::{AppConfig, PermataBankWebhookConfig};
+use crate::config::AppConfig;
 use crate::services::LoginHandler;
-use crate::models::PermataWebhookResponse;
 use crate::providers::StructuredLogger;
 use crate::utils::{error::Result, generate_signature, compact_json};
 
@@ -38,18 +37,17 @@ impl PermataCallbackStatusClient {
         })
     }
 
-    pub async fn send_webhook(&self, webhook_body: &str, request_id: &str) -> Result<PermataWebhookResponse> {
+    pub async fn send_webhook(&self, webhook_body: &str, request_id: &str) -> Result<HttpWebhookResponse> {
         self.send_webhook_with_context(webhook_body, request_id, Some(request_id), Some(request_id)).await
     }
 
-    pub async fn send_webhook_with_context(&self, webhook_body: &str, request_id: &str, unique_id: Option<&str>, x_request_id: Option<&str>) -> Result<PermataWebhookResponse> {
-        let webhook_config = &self.config.permata_bank_webhook;
+    pub async fn send_webhook_with_context(&self, webhook_body: &str, request_id: &str, unique_id: Option<&str>, x_request_id: Option<&str>) -> Result<HttpWebhookResponse> {
         let webclient_config = &self.config.webclient;
         
         let mut last_error = None;
         
         for attempt in 1..=webclient_config.max_retries {
-            match self.make_webhook_request_with_context(webhook_config, webhook_body, request_id, unique_id, x_request_id).await {
+            match self.make_webhook_request(webhook_body, request_id, unique_id, x_request_id).await {
                 Ok(response) => {
                     StructuredLogger::log_info(
                         &format!("Webhook sent successfully on attempt {} for request {}", attempt, request_id),
@@ -93,15 +91,13 @@ impl PermataCallbackStatusClient {
         Err(last_error.unwrap())
     }
 
-    async fn make_webhook_request_with_context(
+    async fn make_webhook_request(
         &self,
-        config: &PermataBankWebhookConfig,
         webhook_body: &str,
         request_id: &str,
         unique_id: Option<&str>,
         x_request_id: Option<&str>,
-    ) -> Result<PermataWebhookResponse> {
-        // Send webhook request
+    ) -> Result<HttpWebhookResponse> {
         // Get access token (will handle refresh if needed)
         let access_token = self.login_handler.get_token_with_context(unique_id, x_request_id).await?;
         
@@ -110,75 +106,6 @@ impl PermataCallbackStatusClient {
 
         // Generate signature using permata_static_key:timestamp:webhook_body
         // First, compact the JSON to remove spaces and newlines
-        let compacted_body = compact_json(webhook_body)?;
-        let signature = generate_signature(
-            &self.config.permata_bank_login.permata_static_key,
-            &access_token,
-            &timestamp,
-            &compacted_body
-        )?;
-
-        StructuredLogger::log_info(
-            &format!("Sending webhook to Permata Bank for request {}", request_id),
-            unique_id,
-            x_request_id,
-            None,
-        );
-        
-        let response = self.client
-            .post(&config.callbackstatus_url)
-            .header("Content-Type", "application/json")
-            .header("Authorization", format!("Bearer {}", access_token))
-            .header("permata-signature", signature)
-            .header("organizationname", &config.organizationname)
-            .header("permata-timestamp", timestamp)
-            .body(webhook_body.to_string())
-            .send()
-            .await?;
-
-        let status = response.status();
-        
-        // Handle non-success status codes by returning response as-is
-        if !status.is_success() {
-            let body = response.text().await.unwrap_or_default();
-            StructuredLogger::log_warning(
-                &format!("Permata webhook returned status {} for request {}: {}", status, request_id, body),
-                unique_id,
-                x_request_id,
-            );
-            
-            // For non-success responses, create a response that preserves the original HTTP status and body
-            let webhook_response = PermataWebhookResponse {
-                status_code: status.as_u16().to_string(),
-                status_desc: body,
-            };
-            
-            return Ok(webhook_response);
-        }
-
-        // Success case - parse response
-        let webhook_response: PermataWebhookResponse = response.json().await?;
-        
-        StructuredLogger::log_info(
-            &format!("Permata webhook success for request {}: {}", request_id, webhook_response.status_desc),
-            unique_id,
-            x_request_id,
-            None,
-        );
-        
-        Ok(webhook_response)
-    }
-
-    // Method baru yang mengembalikan HTTP response langsung
-    pub async fn send_webhook_http(&self, webhook_body: &str, request_id: &str) -> Result<HttpWebhookResponse> {
-        self.send_webhook_http_with_context(webhook_body, request_id, Some(request_id), Some(request_id)).await
-    }
-
-    pub async fn send_webhook_http_with_context(&self, webhook_body: &str, request_id: &str, unique_id: Option<&str>, x_request_id: Option<&str>) -> Result<HttpWebhookResponse> {
-        // Send webhook request langsung return HTTP response
-        let access_token = self.login_handler.get_token_with_context(unique_id, x_request_id).await?;
-        
-        let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3f+07:00").to_string();
         let compacted_body = compact_json(webhook_body)?;
         let signature = generate_signature(
             &self.config.permata_bank_login.permata_static_key,

@@ -82,7 +82,7 @@ fn test_app_config_creation() {
         webclient: webclient_config,
         permata_bank_login: login_config,
         permata_bank_webhook: webhook_config_pb,
-        scheduler: scheduler_config,
+        token_scheduler: scheduler_config,
     };
 
     assert_eq!(app_config.server.listen_host, "0.0.0.0");

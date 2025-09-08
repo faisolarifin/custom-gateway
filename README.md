@@ -1,88 +1,82 @@
-# Webhook Gateway
+# Permata Gateway
 
-A high-performance HTTP webhook gateway built in Rust that receives webhook requests and forwards them to configured URLs.
+Webhook gateway service untuk integrasi dengan Permata Bank API. Menerima webhook dari WhatsApp Business API dan meneruskan ke Permata Bank callback status endpoint dengan proper authentication dan retry mechanism.
 
-## Features
+# Docs
+- [SonarQube](https://sonarqube.jatismobile.com/dashboard?id=waba-integrate_PermataGateway)
 
-- HTTP server using standard library (Hyper) in handlers module
-- Configurable webhook path and forward URLs
-- Request body and headers forwarding
-- Health check endpoint
-- Structured logging
-- Graceful shutdown
+## Version History
 
-## Configuration
+- v0.1.0 (Initial Release):
 
-The application uses YAML configuration files. Example `config.yaml`:
-
-```yaml
-webhook:
-  listen_host: "127.0.0.1"
-  listen_port: 8080
-  webhook_path: "/webhook"
-  forward_urls:
-    - "http://localhost:3001/webhook"
-    - "http://localhost:3002/webhook"
-  timeout: 30
-
-logger:
-  dir: log/
-  file_name: webhook-gateway
-  max_backups: 0
-  max_size: 10
-  max_age: 90
-  compress: true
-  local_time: true
+```
+- Webhook server dengan filtering payload DR dan Inbound Flow
+- Integrasi dengan Permata Bank Login API (OAuth2)
+- Automatic token refresh dengan scheduler
+- Structured logging dengan daily rotation
+- Retry mechanism untuk HTTP requests
+- HMAC signature generation
 ```
 
-## Usage
 
-1. Build the application:
-   ```bash
-   cargo build --release
-   ```
-
-2. Create your configuration file (`config.yaml`)
-
-3. Run the application:
-   ```bash
-   cargo run
-   ```
-
-4. Run tests:
-   ```bash
-   # Run all unit tests
-   cargo test
-   
-   # Run built-in test mode
-   cargo run -- --test
-   
-   # Run ignored tests (network-dependent)  
-   cargo test -- --ignored
-   ```
-
-The server will listen on the configured host and port for webhook requests on the specified path.
+## Requirements
+- Rust 1.75+ untuk development
+- Docker
+- Access ke Permata Bank API endpoints
 
 ## Endpoints
+```python 
+## webhook receiver
+POST /webhook
 
-- `POST {webhook_path}` - Main webhook endpoint that forwards requests to configured URLs
-- `GET /health` - Health check endpoint
+## health check
+GET /webhook
+```
 
-## Request Flow
+## Development
+```bash
+cp config.yaml.example config.yaml
+cargo run
+```
 
-1. Client sends POST request to webhook endpoint
-2. Gateway receives request and extracts headers and body
-3. Gateway forwards the request to all configured forward URLs
-4. Gateway responds with success/error status
+## Testing
+### Unit test only
+```bash
+cargo test
+```
+### Unit test dengan verbose output
+```bash
+cargo test -- --nocapture
+```
+## Deployment (Docker Build)
+- Copy (create) config file refer to `config.yaml.example`
+```bash
+cp config.yaml.example config.yaml
+```
+- Update config if required seperti (Permata Bank API endpoints, credentials, server port)
+- Build the app using docker
+```bash
+docker build -t permata-gateway:{VERSION} .
+```
+- Run the app using docker
+```bash
+docker run -d --name permata-gateway -v "$(pwd)"/log:/app/log -p {YOUR_OPEN_PORT}:8080 permata-gateway:{VERSION}
+```
+- Check your service is running using `docker ps` or access GET {server}:{port}/webhook
 
-## Changes from RabbitMQ Version
+## Configuration
+The application uses `config.yaml` for configuration. Key settings include:
+- **Server**: Listen host, port dan webhook path configuration
+- **WebClient**: HTTP timeout, retry mechanism configuration  
+- **Permata Bank Login**: OAuth2 credentials dan token endpoint
+- **Permata Bank Webhook**: Callback status URL dan organization name
+- **Token Scheduler**: Automatic token refresh interval
+- **Logger**: Structured logging dengan daily rotation dan compression
 
-This version has been refactored from a RabbitMQ consumer to a direct HTTP webhook gateway:
-
-- Removed RabbitMQ dependencies (lapin)  
-- Removed unused auth and HTTP client configurations
-- Added HTTP server using hyper (standard library)
-- Direct webhook forwarding instead of queue-based processing
-- Configurable webhook path and forward URLs
-- Simple configuration with only webhook and logging settings
-- Built-in test mode for validation
+## Architecture
+- **Webhook Server**: Built dengan Hyper untuk high-performance HTTP handling
+- **Authentication**: OAuth2 token management dengan automatic refresh
+- **Payload Filtering**: JSON path-based filtering untuk DR dan Inbound Flow payloads
+- **Retry Mechanism**: Configurable retry untuk failed requests
+- **Logging**: Structured logging dengan JSON format dan file rotation
+- **Signature**: HMAC-SHA256 signature generation untuk API security

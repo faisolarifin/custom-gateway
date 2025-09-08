@@ -8,7 +8,7 @@ pub struct AppConfig {
     pub webclient: WebClientConfig,
     pub permata_bank_login: PermataBankLoginConfig,
     pub permata_bank_webhook: PermataBankWebhookConfig,
-    pub scheduler: SchedulerConfig,
+    pub token_scheduler: SchedulerConfig,
     pub logger: LoggerConfig,
 }
 
