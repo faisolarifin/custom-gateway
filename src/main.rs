@@ -12,12 +12,6 @@ use webhook_gateway::{
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // Check if we should run in test mode
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() > 1 && args[1] == "--test" {
-        return run_tests().await;
-    }
-
     let config = AppConfig::load()?;
     
     StructuredLogger::init("info", Some(config.logger.clone()))?;
@@ -100,36 +94,5 @@ async fn main() -> Result<()> {
         None,
     );
 
-    Ok(())
-}
-
-async fn run_tests() -> Result<()> {
-    println!("=== Webhook Gateway Tests ===\n");
-    
-    // Note: Using built-in test functions (moved to tests directory)
-    // For now, we'll do basic validation here
-    
-    // Test configuration loading
-    match AppConfig::load() {
-        Ok(config) => {
-            println!("✓ Configuration loaded successfully");
-            println!("  - Server host: {}", config.server.listen_host);
-            println!("  - Server port: {}", config.server.listen_port);
-            println!("  - Webhook path: {}", config.server.webhook_path);
-            println!("✓ Configuration tests passed");
-        }
-        Err(e) => {
-            println!("✗ Configuration tests failed: {}", e);
-            return Err(e.into());
-        }
-    }
-    
-    // Test webhook processor
-    let config_for_processor = AppConfig::load()?;
-    let _processor = WebhookProcessor::new(config_for_processor)?;
-    println!("✓ Webhook processor created successfully");
-    println!("✓ Webhook processor tests passed");
-    
-    println!("\n=== All Tests Passed ===");
     Ok(())
 }
