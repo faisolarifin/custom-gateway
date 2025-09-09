@@ -1,4 +1,4 @@
-use webhook_gateway::config::{AppConfig, ServerConfig, LoggerConfig, WebClientConfig, PermataBankLoginConfig, PermataBankWebhookConfig, SchedulerConfig};
+use webhook_gateway::config::{AppConfig, ServerConfig, LoggerConfig, WebClientConfig, PermataBankLoginConfig, PermataBankWebhookConfig, SchedulerConfig, TelegramAlertConfig};
 
 #[test]
 fn test_server_config_creation() {
@@ -76,6 +76,13 @@ fn test_app_config_creation() {
         periodic_interval_mins: 15,
     };
 
+    let telegram_config = TelegramAlertConfig {
+        api_url: "https://api.telegram.org/bot123:test/sendMessage".to_string(),
+        chat_id: "-123456789".to_string(),
+        message_thread_id: "123".to_string(),
+        alert_message_prefix: "[TEST]".to_string(),
+    };
+
     let app_config = AppConfig {
         server: server_config,
         logger: logger_config,
@@ -83,6 +90,7 @@ fn test_app_config_creation() {
         permata_bank_login: login_config,
         permata_bank_webhook: webhook_config_pb,
         token_scheduler: scheduler_config,
+        telegram_alert: telegram_config,
     };
 
     assert_eq!(app_config.server.listen_host, "0.0.0.0");

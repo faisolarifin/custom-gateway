@@ -9,6 +9,7 @@ pub struct AppConfig {
     pub permata_bank_login: PermataBankLoginConfig,
     pub permata_bank_webhook: PermataBankWebhookConfig,
     pub token_scheduler: SchedulerConfig,
+    pub telegram_alert: TelegramAlertConfig,
     pub logger: LoggerConfig,
 }
 
@@ -45,6 +46,14 @@ pub struct PermataBankWebhookConfig {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SchedulerConfig {
     pub periodic_interval_mins: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct TelegramAlertConfig {
+    pub api_url: String,
+    pub chat_id: String,
+    pub message_thread_id: String,
+    pub alert_message_prefix: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

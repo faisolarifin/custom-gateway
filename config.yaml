@@ -26,6 +26,12 @@ permata_bank_webhook:
 token_scheduler:
   periodic_interval_mins: 3          # Run scheduler every 15 minutes
 
+telegram_alert:
+  api_url: "https://api.telegram.org/bot5801394322:AAEaWtt-jGFb81sT7KqrUOw1Pg9m9dtkWas/sendMessage"
+  chat_id: "-1002522258027"
+  message_thread_id: "2"
+  alert_message_prefix: "[Webhook Gateway Alert]"
+
 logger:
   dir: log/                    
   file_name: webhook-gateway

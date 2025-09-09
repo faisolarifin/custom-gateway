@@ -43,6 +43,12 @@ fn create_test_config() -> AppConfig {
         token_scheduler: SchedulerConfig {
             periodic_interval_mins: 15,
         },
+        telegram_alert: TelegramAlertConfig {
+            api_url: "https://api.telegram.org/bot123:test/sendMessage".to_string(),
+            chat_id: "-123456789".to_string(),
+            message_thread_id: "123".to_string(),
+            alert_message_prefix: "[TEST]".to_string(),
+        },
         logger: LoggerConfig {
             dir: std::env::temp_dir().to_string_lossy().to_string(),
             file_name: "test-webhook-processor".to_string(),

@@ -67,6 +67,12 @@ async fn test_webhook_server_integration() {
             token_scheduler: SchedulerConfig {
                 periodic_interval_mins: 15,
             },
+            telegram_alert: TelegramAlertConfig {
+                api_url: "https://api.telegram.org/bot123:test/sendMessage".to_string(),
+                chat_id: "-123456789".to_string(),
+                message_thread_id: "123".to_string(),
+                alert_message_prefix: "[TEST]".to_string(),
+            },
             logger: LoggerConfig {
                 dir: "log".to_string(),
                 file_name: "test".to_string(),
@@ -116,6 +122,12 @@ async fn test_real_webhook_forwarding() {
             },
             token_scheduler: SchedulerConfig {
                 periodic_interval_mins: 15,
+            },
+            telegram_alert: TelegramAlertConfig {
+                api_url: "https://api.telegram.org/bot123:test/sendMessage".to_string(),
+                chat_id: "-123456789".to_string(),
+                message_thread_id: "123".to_string(),
+                alert_message_prefix: "[TEST]".to_string(),
             },
             logger: LoggerConfig {
                 dir: "log".to_string(),
