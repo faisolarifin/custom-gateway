@@ -79,7 +79,18 @@ impl WebhookServer {
 
     fn should_process_payload(&self, body: &str, request_id: &str) -> bool {
         match serde_json::from_str::<serde_json::Value>(body) {
-            Ok(json) => {                
+            Ok(json) => {              
+                 // Check for DR (Delivery Receipt) payload
+                if is_dr_payload(&json) {
+                    StructuredLogger::log_info(
+                        "Detected DR payload",
+                        Some(request_id),
+                        Some(request_id),
+                        None,
+                    );
+                    return true;
+                }
+                  
                 // Check for Inbound Flow payload
                 if is_inbound_flow_payload(&json) {
                     StructuredLogger::log_info(
@@ -219,9 +230,12 @@ impl WebhookServer {
                     Some(request_id),
                     Some(request_id),
                 );
+
+                let json_body = format!(r#"{{"StatusCode":"06","StatusDesc":"{}"}}"#, e);
                 Ok(Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(Full::new(Bytes::from(r#"{"StatusCode":"06","StatusDesc":"Internal Server Error"}"#)))
+                    .header("content-type", "application/json")
+                    .body(Full::new(Bytes::from(json_body)))
                     .unwrap())
             }
         }

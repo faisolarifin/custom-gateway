@@ -37,6 +37,9 @@ pub enum AppError {
 
     #[error("HMAC error: {0}")]
     Hmac(#[from] hmac::digest::InvalidLength),
+
+    #[error("{message}")]
+    ReqError { message: String },
 }
 
 impl AppError {
@@ -66,6 +69,12 @@ impl AppError {
 
     pub fn configuration(message: impl Into<String>) -> Self {
         Self::Configuration {
+            message: message.into(),
+        }
+    }
+
+     pub fn error(message: impl Into<String>) -> Self {
+        Self::ReqError {
             message: message.into(),
         }
     }

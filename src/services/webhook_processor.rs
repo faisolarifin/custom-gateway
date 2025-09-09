@@ -66,7 +66,7 @@ impl WebhookProcessorTrait for WebhookProcessor {
                 })
             }
             Err(e) => {
-                let error_message = format!("Failed to process webhook for request {}: {}", request_id, e);
+                let error_message = format!("Failed to process webhook for: {}", e);
                 
                 StructuredLogger::log_error(
                     &error_message,
@@ -77,7 +77,7 @@ impl WebhookProcessorTrait for WebhookProcessor {
                 // Send telegram alert for webhook failures
                 if let Ok(telegram_service) = TelegramAlertService::new(self.config.clone()) {
                     telegram_service.send_error_alert(
-                        &error_message,
+                        &e.to_string(),
                         Some(request_id)
                     );
                 }

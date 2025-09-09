@@ -4,7 +4,7 @@ server:
   webhook_path: "/webhook"
 
 webclient:
-  timeout: 30
+  timeout: 3
   max_retries: 1
   retry_delay: 1       # in seconds
 

@@ -4,7 +4,7 @@ use reqwest::Client;
 use tokio::time::sleep;
 
 use crate::config::AppConfig;
-use crate::services::LoginHandler;
+use crate::services::{LoginHandler, TelegramAlertService};
 use crate::providers::StructuredLogger;
 use crate::utils::{error::Result, generate_signature, compact_json};
 
@@ -121,7 +121,7 @@ impl PermataCallbackStatusClient {
             None,
         );
         
-        let response = self.client
+        let response = match self.client
             .post(&self.config.permata_bank_webhook.callbackstatus_url)
             .header("Content-Type", "application/json")
             .header("Authorization", format!("Bearer {}", access_token))
@@ -130,17 +130,50 @@ impl PermataCallbackStatusClient {
             .header("permata-timestamp", timestamp)
             .body(webhook_body.to_string())
             .send()
-            .await?;
+            .await
+        {
+            Err(e) => {
+                let error_message = "Request timeout/connection error for Permata Bank";
+                
+                StructuredLogger::log_error(
+                    &format!("{}: {}", error_message, e),
+                    unique_id,
+                    x_request_id,
+                );
+
+                return Err(crate::utils::error::AppError::error(error_message));
+            },
+            Ok(resp) => resp,
+        };
 
         let status_code = response.status().as_u16();
         let body = response.text().await.unwrap_or_default();
         
-        StructuredLogger::log_info(
-            &format!("Received HTTP {} from Permata Bank for request {}", status_code, request_id),
-            unique_id,
-            x_request_id,
-            None,
-        );
+        // Log based on status code type
+        if status_code >= 200 && status_code < 300 {
+            StructuredLogger::log_info(
+                &format!("Received HTTP {} from Permata Bank for request {}", status_code, request_id),
+                unique_id,
+                x_request_id,
+                None,
+            );
+        } else {
+            let error_message = format!("Received Error {} from Permata Bank for: {}", status_code, body);
+            
+            StructuredLogger::log_error(
+                &error_message,
+                unique_id,
+                x_request_id,
+            );
+            
+            // Send telegram alert for non-2xx status
+            if let Ok(telegram_service) = TelegramAlertService::new(self.config.clone()) {
+                telegram_service.send_error_alert(
+                    format!("Received non-2xx HTTP {} from Permata Bank", status_code).as_str(),
+                    x_request_id
+                );
+            }
+        }
         
         Ok(HttpWebhookResponse {
             status_code,
