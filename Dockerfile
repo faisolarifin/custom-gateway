@@ -1,9 +1,9 @@
 # Multi-stage build untuk Rust webhook-gateway
-FROM rust:1.75-alpine AS builder
+FROM rust:1.89-alpine AS builder
 WORKDIR /app
 
 # Install dependencies untuk compile Rust di Alpine
-RUN apk add --no-cache musl-dev pkgconfig openssl-dev
+RUN apk add --no-cache musl-dev pkgconfig openssl-dev openssl-libs-static
 
 # Copy Cargo.toml dan Cargo.lock untuk cache dependencies
 COPY Cargo.toml Cargo.lock ./
@@ -34,11 +34,6 @@ COPY config.yaml.example ./config.yaml
 
 # Create log directory
 RUN mkdir -p log
-
-# Create non-root user untuk security
-RUN adduser -D -u 1001 appuser
-RUN chown -R appuser:appuser /app
-USER appuser
 
 # Expose port
 EXPOSE 8080
