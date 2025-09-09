@@ -169,7 +169,10 @@ impl LoginHandler {
 
     async fn make_login_request_with_context(&self, config: &PermataBankLoginConfig, unique_id: Option<&str>, request_id: Option<&str>) -> Result<TokenResponse> {
         // Generate timestamp for this request
-        let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3f+07:00").to_string();
+        let timestamp = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(7 * 3600)
+                                .unwrap())
+                                .format("%Y-%m-%dT%H:%M:%S%.3f+07:00")
+                                .to_string();
         
         // Create Basic Auth header (base64 encode username:password)
         let auth_string = format!("{}:{}", config.username, config.password);

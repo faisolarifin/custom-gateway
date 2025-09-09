@@ -102,7 +102,10 @@ impl PermataCallbackStatusClient {
         let access_token = self.login_handler.get_token_with_context(unique_id, x_request_id).await?;
         
         // Generate timestamp for this request
-        let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.3f+07:00").to_string();
+        let timestamp = chrono::Utc::now().with_timezone(&chrono::FixedOffset::east_opt(7 * 3600)
+                                .unwrap())
+                                .format("%Y-%m-%dT%H:%M:%S%.3f+07:00")
+                                .to_string();
 
         // Generate signature using permata_static_key:timestamp:webhook_body
         // First, compact the JSON to remove spaces and newlines
