@@ -85,8 +85,8 @@ async fn test_webhook_server_integration() {
         }
     });
 
-    let processor = Arc::new(WebhookProcessor::new(app_config).unwrap());
-    let server = WebhookServer::new(config, processor);
+    let processor = Arc::new(WebhookProcessor::new(app_config.clone()).unwrap());
+    let server = WebhookServer::new(config, processor, app_config);
 
     // Test that server can be created and shut down gracefully
     let shutdown_result = server.shutdown().await;

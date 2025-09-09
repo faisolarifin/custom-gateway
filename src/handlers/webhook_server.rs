@@ -13,7 +13,7 @@ use tracing::{error, info};
 use uuid::Uuid;
 
 use crate::config::ServerConfig;
-use crate::services::WebhookProcessorTrait;
+use crate::services::{WebhookProcessorTrait, TelegramAlertService};
 use crate::utils::error::{AppError, Result};
 use crate::utils::json::{is_dr_payload, is_inbound_flow_payload};
 use crate::providers::logging::StructuredLogger;
@@ -28,11 +28,12 @@ pub trait WebhookServerTrait {
 pub struct WebhookServer {
     config: ServerConfig,
     processor: Arc<dyn WebhookProcessorTrait + Send + Sync>,
+    app_config: crate::config::AppConfig,
 }
 
 impl WebhookServer {
-    pub fn new(config: ServerConfig, processor: Arc<dyn WebhookProcessorTrait + Send + Sync>) -> Self {
-        Self { config, processor }
+    pub fn new(config: ServerConfig, processor: Arc<dyn WebhookProcessorTrait + Send + Sync>, app_config: crate::config::AppConfig) -> Self {
+        Self { config, processor, app_config }
     }
 
     async fn handle_webhook(
@@ -78,18 +79,7 @@ impl WebhookServer {
 
     fn should_process_payload(&self, body: &str, request_id: &str) -> bool {
         match serde_json::from_str::<serde_json::Value>(body) {
-            Ok(json) => {
-                // Check for DR (Delivery Receipt) payload
-                if is_dr_payload(&json) {
-                    StructuredLogger::log_info(
-                        "Detected DR payload",
-                        Some(request_id),
-                        Some(request_id),
-                        None,
-                    );
-                    return true;
-                }
-                
+            Ok(json) => {                
                 // Check for Inbound Flow payload
                 if is_inbound_flow_payload(&json) {
                     StructuredLogger::log_info(
@@ -110,11 +100,21 @@ impl WebhookServer {
                 false
             }
             Err(e) => {
+                let error_message = format!("Failed to parse JSON payload: {}", e);
+                
                 StructuredLogger::log_error(
-                    &format!("Failed to parse JSON payload: {}", e),
+                    &error_message,
                     Some(request_id),
                     Some(request_id),
                 );
+                
+                // Send telegram alert for JSON parse failure
+                if let Ok(telegram_service) = TelegramAlertService::new(self.app_config.clone()) {
+                    telegram_service.send_error_alert(
+                        "Failed to parse JSON payload",
+                        Some(request_id)
+                    );
+                }
                 false
             }
         }
@@ -181,7 +181,7 @@ impl WebhookServer {
             return Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header("content-type", "application/json")
-                .body(Full::new(Bytes::from(r#"{"status": "success"}"#)))
+                .body(Full::new(Bytes::from(r#"{"StatusCode":"00","StatusDesc":"Success"}"#)))
                 .unwrap());
         }
 
@@ -221,7 +221,7 @@ impl WebhookServer {
                 );
                 Ok(Response::builder()
                     .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .body(Full::new(Bytes::from("Internal Server Error")))
+                    .body(Full::new(Bytes::from(r#"{"StatusCode":"06","StatusDesc":"Internal Server Error"}"#)))
                     .unwrap())
             }
         }

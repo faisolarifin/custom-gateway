@@ -20,7 +20,7 @@ async fn main() -> Result<()> {
     
     let webhook_processor = WebhookProcessor::new(config.clone())?;
     let webhook_processor_arc: Arc<dyn WebhookProcessorTrait + Send + Sync> = Arc::new(webhook_processor.clone());
-    let webhook_server = WebhookServer::new(config.server.clone(), webhook_processor_arc);
+    let webhook_server = WebhookServer::new(config.server.clone(), webhook_processor_arc, config.clone());
 
     StructuredLogger::log_info(
         "Webhook Gateway Application started successfully",

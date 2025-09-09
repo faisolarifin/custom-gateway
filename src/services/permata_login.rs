@@ -9,7 +9,7 @@ use crate::config::{AppConfig, PermataBankLoginConfig};
 use crate::models::TokenResponse;
 use crate::providers::StructuredLogger;
 use crate::utils::{error::Result, generate_signature};
-use crate::services::TokenScheduler;
+use crate::services::{TokenScheduler, TelegramAlertService};
 
 #[derive(Clone)]
 pub struct LoginHandler {
@@ -158,6 +158,7 @@ impl LoginHandler {
                             unique_id,
                             request_id,
                         );
+        
                     }
                 }
             }
@@ -196,11 +197,22 @@ impl LoginHandler {
         if !response.status().is_success() {
             let status = response.status();
             let body = response.text().await.unwrap_or_default();
+            let error_message = format!("Login request failed with status {}: {}", status, body);
+            
             StructuredLogger::log_error(
-                &format!("Login request failed with status {}: {}", status, body),
+                &error_message,
                 unique_id,
                 request_id,
             );
+            
+            // Send telegram alert for individual login request failures
+            if let Ok(telegram_service) = TelegramAlertService::new(self.config.clone()) {
+                telegram_service.send_error_alert(
+                    &error_message,
+                    request_id
+                );
+            }
+            
             return Err(crate::utils::error::AppError::authentication_failed(
                 format!("Login failed: {} - {}", status, body)
             ));

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use crate::config::AppConfig;
 use crate::models::WebhookMessage;
-use crate::services::PermataCallbackStatusClient;
+use crate::services::{PermataCallbackStatusClient, TelegramAlertService};
 use crate::utils::error::Result;
 use crate::providers::logging::StructuredLogger;
 
@@ -20,13 +20,15 @@ pub trait WebhookProcessorTrait {
 #[derive(Clone)]
 pub struct WebhookProcessor {
     permata_client: PermataCallbackStatusClient,
+    config: AppConfig,
 }
 
 impl WebhookProcessor {
     pub fn new(config: AppConfig) -> Result<Self> {
-        let permata_client = PermataCallbackStatusClient::new(config)?;
+        let permata_client = PermataCallbackStatusClient::new(config.clone())?;
         Ok(Self {
             permata_client,
+            config,
         })
     }
 
@@ -39,8 +41,6 @@ impl WebhookProcessor {
         );
         self.permata_client.shutdown().await;
     }
-
-
 }
 
 #[async_trait]
@@ -66,18 +66,28 @@ impl WebhookProcessorTrait for WebhookProcessor {
                 })
             }
             Err(e) => {
+                let error_message = format!("Failed to process webhook for request {}: {}", request_id, e);
+                
                 StructuredLogger::log_error(
-                    &format!("Failed to process webhook for request {}: {}", request_id, e),
+                    &error_message,
                     Some(request_id),
                     Some(request_id),
                 );
                 
+                // Send telegram alert for webhook failures
+                if let Ok(telegram_service) = TelegramAlertService::new(self.config.clone()) {
+                    telegram_service.send_error_alert(
+                        &error_message,
+                        Some(request_id)
+                    );
+                }
+                
                 // Check if this is an authentication error - handle gracefully
                 let error_msg = e.to_string();
-                if error_msg.contains("Authentication failed") || error_msg.contains("Login failed") {
-                    // Return a 502 Bad Gateway to indicate upstream authentication issues
+                if error_msg.contains("Authentication failed") || error_msg.contains("Login failed") {                    
+                    // Return a 401 Unauthorized to indicate upstream authentication issues
                     Ok(WebhookResponse {
-                        http_status: 502,
+                        http_status: 401,
                         body: format!(r#"{{"error": "Authentication failed", "message": "{}"}}"#, error_msg),
                     })
                 } else {
