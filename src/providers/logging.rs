@@ -39,6 +39,12 @@ impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for ConfigurableFileWriter {
             today
         );
         
+        // Create the directory if it doesn't exist
+        if let Some(parent) = std::path::Path::new(&log_file_path).parent() {
+            std::fs::create_dir_all(parent)
+                .unwrap_or_else(|e| panic!("Failed to create log directory {}: {}", parent.display(), e));
+        }
+        
         let file = OpenOptions::new()
             .create(true)
             .append(true)

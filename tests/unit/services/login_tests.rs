@@ -47,8 +47,8 @@ async fn test_login_handler_creation() {
     assert!(handler.is_ok());
 }
 
-#[test]
-fn test_login_handler_cache_clear() {
+#[tokio::test]
+async fn test_login_handler_cache_clear() {
     let config = create_test_config();
     let handler = LoginHandler::new(config).unwrap();
     

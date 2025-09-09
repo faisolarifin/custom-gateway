@@ -44,8 +44,8 @@ fn create_test_config() -> AppConfig {
             periodic_interval_mins: 15,
         },
         logger: LoggerConfig {
-            dir: "log".to_string(),
-            file_name: "test".to_string(),
+            dir: std::env::temp_dir().to_string_lossy().to_string(),
+            file_name: "test-webhook-processor".to_string(),
             max_backups: 0,
             max_size: 10,
             max_age: 90,

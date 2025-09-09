@@ -1,7 +1,7 @@
 use webhook_gateway::services::{TokenScheduler, SchedulerConfig};
 
 // Constants from the module for testing
-const DEFAULT_PERIODIC_INTERVAL_MINS: u64 = 15;
+const DEFAULT_PERIODIC_INTERVAL_MINS: u64 = 1;
 
 #[tokio::test]
 async fn test_scheduler_creation() {

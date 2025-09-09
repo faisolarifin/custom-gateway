@@ -55,8 +55,8 @@ mod tests {
         test_config_loading().expect("Config test failed");
     }
 
-    #[test] 
-    fn test_processor() {
+    #[tokio::test] 
+    async fn test_processor() {
         test_message_processor().expect("Processor test failed");
     }
 }
