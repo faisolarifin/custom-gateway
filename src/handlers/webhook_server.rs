@@ -15,6 +15,7 @@ use uuid::Uuid;
 use crate::config::ServerConfig;
 use crate::services::{WebhookProcessorTrait, TelegramAlertService};
 use crate::utils::error::{AppError, Result};
+use crate::utils::request_id::extract_request_id;
 use crate::utils::json::{is_dr_payload, is_inbound_flow_payload};
 use crate::providers::logging::StructuredLogger;
 
@@ -157,11 +158,11 @@ impl WebhookServer {
     async fn process_webhook(
         &self,
         req: Request<hyper::body::Incoming>,
-        request_id: &str,
+        mut request_id: &str,
     ) -> std::result::Result<Response<Full<Bytes>>, Infallible> {
         // Extract headers for forwarding
         let headers = req.headers().clone();
-        
+
         // Read the body
         let body_bytes = match req.collect().await {
             Ok(body) => body.to_bytes(),
@@ -172,15 +173,19 @@ impl WebhookServer {
                     Some(request_id),
                 );
                 return Ok(Response::builder()
-                    .status(StatusCode::BAD_REQUEST)
-                    .body(Full::new(Bytes::from("Bad Request")))
-                    .unwrap());
+                .status(StatusCode::BAD_REQUEST)
+                .body(Full::new(Bytes::from("Bad Request")))
+                .unwrap());
             }
         };
-
-        // Parse JSON payload to determine if it's DR or Inbound Flow
+    
+         // Parse JSON payload to determine if it's DR or Inbound Flow
         let body_str = String::from_utf8_lossy(&body_bytes);
-        
+
+        // Change request_id
+        let extracted_id = extract_request_id(&body_str);
+        request_id = &extracted_id;
+
         // Check if payload should be processed
         if !self.should_process_payload(&body_str, request_id) {
             StructuredLogger::log_info(

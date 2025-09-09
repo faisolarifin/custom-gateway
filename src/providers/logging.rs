@@ -115,7 +115,7 @@ impl StructuredLogger {
             Utc::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string()
         };
         
-        let unique_id = unique_id.unwrap_or("unknown");
+        let unique_id = unique_id.unwrap_or("MAIN");
         let request_id = request_id.unwrap_or(unique_id);
 
         let log_entry = json!({
@@ -148,7 +148,7 @@ impl StructuredLogger {
             Utc::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string()
         };
         
-        let unique_id = unique_id.unwrap_or("unknown");
+        let unique_id = unique_id.unwrap_or("MAIN");
         let request_id = request_id.unwrap_or(unique_id);
 
         let mut log_entry = json!({
@@ -188,7 +188,7 @@ impl StructuredLogger {
             Utc::now().format("%Y-%m-%d %H:%M:%S%.3f").to_string()
         };
         
-        let unique_id = unique_id.unwrap_or("unknown");
+        let unique_id = unique_id.unwrap_or("MAIN");
         let request_id = request_id.unwrap_or(unique_id);
 
         let log_entry = json!({
