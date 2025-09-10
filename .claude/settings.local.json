@@ -13,7 +13,8 @@
       "Read(/D:\\Rust\\test-kube\\src\\models/**)",
       "Read(/D:\\Rust\\test-kube\\src\\providers/**)",
       "Read(/D:\\Rust\\test-kube\\src\\providers/**)",
-      "Read(/D:\\Rust\\test-kube\\src\\config/**)"
+      "Read(/D:\\Rust\\test-kube\\src\\config/**)",
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": []

@@ -2,5 +2,5 @@ projectKey=learning-faisol
 serverUrl=https://sonarqube.jatismobile.com
 serverVersion=9.9.0.65466
 dashboardUrl=https://sonarqube.jatismobile.com/dashboard?id=learning-faisol
-ceTaskId=AZkuqr4HmXUaPcUY1JrX
-ceTaskUrl=https://sonarqube.jatismobile.com/api/ce/task?id=AZkuqr4HmXUaPcUY1JrX
+ceTaskId=AZkxsVhCmXUaPcUY1Jrh
+ceTaskUrl=https://sonarqube.jatismobile.com/api/ce/task?id=AZkxsVhCmXUaPcUY1Jrh

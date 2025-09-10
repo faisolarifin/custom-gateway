@@ -1,301 +1,277 @@
-<mxfile host="app.diagrams.net" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" version="24.7.14">
-  <diagram name="Permata Gateway Flow" id="permata-gateway">
-    <mxGraphModel dx="1422" dy="765" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.9 Chrome/128.0.6613.186 Electron/32.2.5 Safari/537.36" version="26.0.9">
+  <diagram name="Permata Gateway Application Flow" id="permata-gateway-flow">
+    <mxGraphModel dx="308" dy="2514" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        
-        <!-- Title -->
-        <mxCell id="title" value="Permata Gateway - Webhook Processing Flow" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;fontColor=#1f497d;" vertex="1" parent="1">
-          <mxGeometry x="320" y="20" width="480" height="30" as="geometry" />
-        </mxCell>
-        
-        <!-- WhatsApp Business API -->
-        <mxCell id="whatsapp" value="WhatsApp Business API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4e1f5;strokeColor=#6c8ebf;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="40" y="100" width="160" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Webhook Server -->
-        <mxCell id="webhook-server" value="Webhook Server&#xa;(Hyper HTTP Server)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontStyle=1;fontSize=12;" vertex="1" parent="1">
-          <mxGeometry x="280" y="100" width="160" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Request Validation -->
-        <mxCell id="validation" value="Request Validation&#xa;&amp; Logging" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontStyle=1;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="300" y="200" width="120" height="80" as="geometry" />
-        </mxCell>
-        
-        <!-- JSON Parsing -->
-        <mxCell id="json-parse" value="Parse JSON Payload" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="520" y="210" width="120" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Payload Filter Decision -->
-        <mxCell id="filter-decision" value="Is DR or&#xa;Inbound Flow?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontStyle=1;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="520" y="320" width="120" height="80" as="geometry" />
-        </mxCell>
-        
-        <!-- DR Payload Check -->
-        <mxCell id="dr-check" value="DR Payload Check:&#xa;• error field exists&#xa;• entry.changes.value.statuses" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="720" y="280" width="160" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Inbound Flow Check -->
-        <mxCell id="inbound-check" value="Inbound Flow Check:&#xa;data.entry.changes.value&#xa;.messages.interactive&#xa;.type = 'nfm_reply'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" vertex="1" parent="1">
-          <mxGeometry x="720" y="360" width="160" height="80" as="geometry" />
-        </mxCell>
-        
-        <!-- Ignore Response -->
-        <mxCell id="ignore-response" value="Return 200 OK&#xa;'Ignore send payload to client'" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="300" y="450" width="140" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Token Manager -->
-        <mxCell id="token-manager" value="Token Manager&#xa;(OAuth2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="720" y="480" width="120" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Token Check -->
-        <mxCell id="token-check" value="Valid Token?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="520" y="480" width="100" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Login to Permata -->
-        <mxCell id="login-permata" value="Login to&#xa;Permata Bank API" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="720" y="580" width="120" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Generate Signature -->
-        <mxCell id="generate-sig" value="Generate HMAC&#xa;Signature" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="520" y="580" width="120" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Send to Permata -->
-        <mxCell id="send-permata" value="Send Webhook to&#xa;Permata Bank" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d4e1f5;strokeColor=#6c8ebf;fontStyle=1;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="320" y="580" width="120" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Retry Logic -->
-        <mxCell id="retry-logic" value="Request Failed?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="320" y="680" width="120" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Retry Wait -->
-        <mxCell id="retry-wait" value="Wait &amp; Retry&#xa;(Max 3 attempts)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="520" y="680" width="120" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Return Response -->
-        <mxCell id="return-response" value="Return HTTP Response&#xa;to Client" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontStyle=1;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="120" y="680" width="140" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Token Scheduler -->
-        <mxCell id="token-scheduler" value="Token Scheduler&#xa;(Background Process)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffd966;strokeColor=#d6b656;fontStyle=1;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="920" y="480" width="140" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Periodic Refresh -->
-        <mxCell id="periodic-refresh" value="Periodic Token&#xa;Refresh (3 mins)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffd966;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="920" y="580" width="140" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Structured Logger -->
-        <mxCell id="logger" value="Structured Logger&#xa;(JSON + File Rotation)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f0f0f0;strokeColor=#666666;fontStyle=1;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="40" y="580" width="140" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Error Response -->
-        <mxCell id="error-response" value="Error Response&#xa;(Auth Failed, etc)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="120" y="780" width="140" height="60" as="geometry" />
-        </mxCell>
-        
-        <!-- Flow Arrows -->
-        <!-- WhatsApp to Webhook Server -->
-        <mxCell id="arrow1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#1f497d;" edge="1" parent="1" source="whatsapp" target="webhook-server">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-1" target="iP2fBkS0vCjnL0VtTD-p-4" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arrow1-label" value="HTTP POST /webhook" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#1f497d;" vertex="1" parent="1">
-          <mxGeometry x="200" y="110" width="80" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Webhook Server to Validation -->
-        <mxCell id="arrow2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="webhook-server" target="validation">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-1" target="iP2fBkS0vCjnL0VtTD-p-2" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
-        <!-- Validation to JSON Parse (Valid) -->
-        <mxCell id="arrow3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="validation" target="json-parse">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-14" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-1" target="iP2fBkS0vCjnL0VtTD-p-3" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arrow3-label" value="Valid" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="460" y="220" width="40" height="20" as="geometry" />
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-1" value="Start" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2090" y="70" width="120" height="80" as="geometry" />
         </mxCell>
-        
-        <!-- JSON Parse to Filter Decision -->
-        <mxCell id="arrow4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="json-parse" target="filter-decision">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-13" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-2" target="iP2fBkS0vCjnL0VtTD-p-12" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
-        <!-- Filter Decision to DR Check -->
-        <mxCell id="arrow5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="filter-decision" target="dr-check">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-2" value="POST /webhook" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2280" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-16" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-3" target="iP2fBkS0vCjnL0VtTD-p-15" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
-        <!-- Filter Decision to Inbound Check -->
-        <mxCell id="arrow6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="filter-decision" target="inbound-check">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-3" value="GET&amp;nbsp; /webhook" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2090" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-8" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-4" target="iP2fBkS0vCjnL0VtTD-p-5" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
-        <!-- Filter Decision to Ignore (No Match) -->
-        <mxCell id="arrow7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d6b656;" edge="1" parent="1" source="filter-decision" target="ignore-response">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-4" value="Run Sheduler Login" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1800" y="200" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-9" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-5" target="iP2fBkS0vCjnL0VtTD-p-6" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-46" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-5" target="iP2fBkS0vCjnL0VtTD-p-36" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-5" value="Login get token" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1800" y="300" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-6" target="iP2fBkS0vCjnL0VtTD-p-4" edge="1">
           <mxGeometry relative="1" as="geometry">
-            <mxPoint x="480" y="360" as="sourcePoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="arrow7-label" value="No Match" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#d6b656;" vertex="1" parent="1">
-          <mxGeometry x="420" y="400" width="60" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- DR/Inbound Check to Token Check -->
-        <mxCell id="arrow8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="dr-check" target="token-check">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="720" y="320" as="sourcePoint" />
-            <mxPoint x="620" y="480" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="arrow8b" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="inbound-check" target="token-check">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="720" y="440" as="sourcePoint" />
-            <mxPoint x="620" y="500" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        <mxCell id="arrow8-label" value="Match" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="680" y="450" width="40" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Token Check to Token Manager (Invalid) -->
-        <mxCell id="arrow9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d79b00;" edge="1" parent="1" source="token-check" target="token-manager">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="arrow9-label" value="Invalid/Expired" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="640" y="490" width="80" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Token Manager to Login -->
-        <mxCell id="arrow10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="token-manager" target="login-permata">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        
-        <!-- Token Check to Generate Signature (Valid) -->
-        <mxCell id="arrow11" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="token-check" target="generate-sig">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="arrow11-label" value="Valid" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="570" y="550" width="40" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Login to Generate Signature -->
-        <mxCell id="arrow12" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="login-permata" target="generate-sig">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="720" y="610" as="sourcePoint" />
-            <mxPoint x="640" y="610" as="targetPoint" />
-          </mxGeometry>
-        </mxCell>
-        
-        <!-- Generate Signature to Send Permata -->
-        <mxCell id="arrow13" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="generate-sig" target="send-permata">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        
-        <!-- Send Permata to Retry Logic -->
-        <mxCell id="arrow14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="send-permata" target="retry-logic">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        
-        <!-- Retry Logic to Retry Wait (Failed) -->
-        <mxCell id="arrow15" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#d79b00;" edge="1" parent="1" source="retry-logic" target="retry-wait">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
-        <mxCell id="arrow15-label" value="Failed &amp; Retries Left" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#d79b00;" vertex="1" parent="1">
-          <mxGeometry x="430" y="690" width="100" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Retry Wait back to Send Permata -->
-        <mxCell id="arrow16" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="retry-wait" target="send-permata">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="580" y="680" as="sourcePoint" />
-            <mxPoint x="440" y="640" as="targetPoint" />
             <Array as="points">
-              <mxPoint x="580" y="660" />
-              <mxPoint x="480" y="660" />
-              <mxPoint x="480" y="610" />
+              <mxPoint x="1750" y="460" />
+              <mxPoint x="1750" y="230" />
             </Array>
           </mxGeometry>
         </mxCell>
-        
-        <!-- Retry Logic to Return Response (Success) -->
-        <mxCell id="arrow17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#82b366;" edge="1" parent="1" source="retry-logic" target="return-response">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-6" value="Is periodic running sheduler?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="1810" y="410" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-28" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-12" target="iP2fBkS0vCjnL0VtTD-p-25" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="arrow17-label" value="Success" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#82b366;" vertex="1" parent="1">
-          <mxGeometry x="240" y="690" width="60" height="20" as="geometry" />
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-12" value="&lt;span style=&quot;font-size: 11px;&quot;&gt;Extract Request Payload JSON&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2280" y="300" width="120" height="60" as="geometry" />
         </mxCell>
-        
-        <!-- Retry Logic to Error Response (All Retries Failed) -->
-        <mxCell id="arrow18" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;strokeColor=#b85450;" edge="1" parent="1" source="retry-logic" target="error-response">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="380" y="740" as="sourcePoint" />
-            <mxPoint x="190" y="780" as="targetPoint" />
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-15" value="Response 200 Success" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2090" y="300" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-17" target="iP2fBkS0vCjnL0VtTD-p-19" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-22" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-21" vertex="1" connectable="0">
+          <mxGeometry x="-0.1298" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="arrow18-label" value="All Retries Failed" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=10;fontColor=#b85450;" vertex="1" parent="1">
-          <mxGeometry x="200" y="740" width="100" height="20" as="geometry" />
-        </mxCell>
-        
-        <!-- Token Scheduler Flow -->
-        <mxCell id="arrow19" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;" edge="1" parent="1" source="token-scheduler" target="periodic-refresh">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-33" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-17" target="iP2fBkS0vCjnL0VtTD-p-32" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
-        <!-- Periodic Refresh to Token Manager -->
-        <mxCell id="arrow20" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=2;dashed=1;" edge="1" parent="1" source="periodic-refresh" target="token-manager">
-          <mxGeometry relative="1" as="geometry">
-            <mxPoint x="920" y="610" as="sourcePoint" />
-            <mxPoint x="840" y="520" as="targetPoint" />
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-17" value="Is payload DR or Inbound flow message?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2290" y="540" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-24" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-19" target="iP2fBkS0vCjnL0VtTD-p-23" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-19" value="Ignore the request" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2480" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-76" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-23" target="iP2fBkS0vCjnL0VtTD-p-69" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-23" value="Response 200 Success" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2660" y="560" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-27" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-25" target="iP2fBkS0vCjnL0VtTD-p-26" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-30" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-27" vertex="1" connectable="0">
+          <mxGeometry x="-0.2234" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        
-        <!-- Logger connections (dotted lines) -->
-        <mxCell id="log1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="logger" target="webhook-server">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="110" y="550" />
-              <mxPoint x="110" y="130" />
-            </Array>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-29" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-25" target="iP2fBkS0vCjnL0VtTD-p-17" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-31" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-29" vertex="1" connectable="0">
+          <mxGeometry x="-0.4684" y="2" relative="1" as="geometry">
+            <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="log2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="logger" target="send-permata">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-25" value="Is failed parse JSON" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2290" y="400" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="qI9zLhb5zL1YSGXmJBYN-2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="iP2fBkS0vCjnL0VtTD-p-26" target="iP2fBkS0vCjnL0VtTD-p-23">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="log3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeWidth=1;strokeColor=#666666;dashed=1;" edge="1" parent="1" source="logger" target="error-response">
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-26" value="HIT send alert to telegram" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2480" y="420" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-35" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-32" target="iP2fBkS0vCjnL0VtTD-p-34" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
-        <!-- Legend -->
-        <mxCell id="legend-title" value="Legend:" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;fontStyle=1;" vertex="1" parent="1">
-          <mxGeometry x="920" y="100" width="60" height="20" as="geometry" />
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-32" value="Get access token in cache" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2280" y="680" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="legend-solid" value="━━━ Main Flow" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;strokeColor=#1f497d;" vertex="1" parent="1">
-          <mxGeometry x="920" y="130" width="100" height="20" as="geometry" />
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-37" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-34" target="iP2fBkS0vCjnL0VtTD-p-36" edge="1">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="legend-dashed" value="┅┅┅ Background/Retry" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;" vertex="1" parent="1">
-          <mxGeometry x="920" y="150" width="120" height="20" as="geometry" />
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-47" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-37" vertex="1" connectable="0">
+          <mxGeometry x="-0.194" y="1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
         </mxCell>
-        <mxCell id="legend-dotted" value="⋯⋯⋯ Logging" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=11;fontColor=#666666;" vertex="1" parent="1">
-          <mxGeometry x="920" y="170" width="80" height="20" as="geometry" />
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-49" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-34" target="iP2fBkS0vCjnL0VtTD-p-48" edge="1">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-55" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-49" vertex="1" connectable="0">
+          <mxGeometry x="-0.1116" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-34" value="Is token null ?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2290" y="780" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-39" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-36" target="iP2fBkS0vCjnL0VtTD-p-38" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-36" value="Prepare login header" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2020" y="800" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-41" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-38" target="iP2fBkS0vCjnL0VtTD-p-40" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-38" value="Login to Permata" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2020" y="900" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-43" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-40" target="iP2fBkS0vCjnL0VtTD-p-42" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-50" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-43" vertex="1" connectable="0">
+          <mxGeometry x="-0.1" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-40" value="Is login success?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2030" y="1000" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-78" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-42" target="iP2fBkS0vCjnL0VtTD-p-48" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-42" value="Put access_token to cache" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2020" y="1140" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-52" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-48" target="iP2fBkS0vCjnL0VtTD-p-51" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-48" value="Compact JSON" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2280" y="930" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-56" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-51" target="iP2fBkS0vCjnL0VtTD-p-53" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-51" value="Generate Signature" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2280" y="1040" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-59" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-53" target="iP2fBkS0vCjnL0VtTD-p-58" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-53" value="Prepare header to send callbackstatus" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2280" y="1140" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-61" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-58" target="iP2fBkS0vCjnL0VtTD-p-60" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-71" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-61" vertex="1" connectable="0">
+          <mxGeometry x="-0.3323" y="-2" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-63" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-58" target="iP2fBkS0vCjnL0VtTD-p-62" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-72" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-63" vertex="1" connectable="0">
+          <mxGeometry x="-0.2053" y="-1" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-58" value="Is hit timeout?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2290" y="1240" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-66" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-60" target="iP2fBkS0vCjnL0VtTD-p-65" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-60" value="Send telegram alert" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2460" y="1260" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-64" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-62" target="iP2fBkS0vCjnL0VtTD-p-60" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-73" value="Yes" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-64" vertex="1" connectable="0">
+          <mxGeometry x="-0.5333" y="-3" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-68" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-62" target="iP2fBkS0vCjnL0VtTD-p-67" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-74" value="No" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];" parent="iP2fBkS0vCjnL0VtTD-p-68" vertex="1" connectable="0">
+          <mxGeometry x="-0.2579" relative="1" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-62" value="Is respose not 2xx?" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2290" y="1380" width="100" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-75" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-65" target="iP2fBkS0vCjnL0VtTD-p-69" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-65" value="Response Error with req body from permata" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2640" y="1260" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-70" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="iP2fBkS0vCjnL0VtTD-p-67" target="iP2fBkS0vCjnL0VtTD-p-69" edge="1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-67" value="Response 200 Success with request body as is from permata" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2280" y="1520" width="120" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-69" value="End" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
+          <mxGeometry x="2280" y="1650" width="120" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="iP2fBkS0vCjnL0VtTD-p-77" value="Permata Gateway" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" parent="1" vertex="1">
+          <mxGeometry x="1900" width="500" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="qI9zLhb5zL1YSGXmJBYN-3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="qI9zLhb5zL1YSGXmJBYN-1" target="iP2fBkS0vCjnL0VtTD-p-23">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="qI9zLhb5zL1YSGXmJBYN-1" value="&lt;div&gt;{&lt;/div&gt;&lt;div&gt;&quot;StatusCode&quot; : &quot;00&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp;&quot;StatusDesc&quot; : &quot;Success&quot;&lt;/div&gt;&lt;div&gt;}&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;align=left;" vertex="1" parent="1">
+          <mxGeometry x="2920" y="520" width="160" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="qI9zLhb5zL1YSGXmJBYN-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="qI9zLhb5zL1YSGXmJBYN-4" target="iP2fBkS0vCjnL0VtTD-p-67">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="qI9zLhb5zL1YSGXmJBYN-4" value="&lt;div&gt;{&lt;/div&gt;&lt;div&gt;&quot;StatusCode&quot; : &quot;00&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp;&quot;StatusDesc&quot; : &quot;Success&quot;&lt;/div&gt;&lt;div&gt;}&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;align=left;" vertex="1" parent="1">
+          <mxGeometry x="1960" y="1500" width="160" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="qI9zLhb5zL1YSGXmJBYN-7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="qI9zLhb5zL1YSGXmJBYN-6" target="iP2fBkS0vCjnL0VtTD-p-65">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="qI9zLhb5zL1YSGXmJBYN-6" value="&lt;div&gt;{&lt;/div&gt;&lt;div&gt;&quot;StatusCode&quot; : &quot;06&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp;&quot;StatusDesc&quot; : &quot;Internal Server Error&quot;&lt;/div&gt;&lt;div&gt;}&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;align=left;" vertex="1" parent="1">
+          <mxGeometry x="2960" y="1260" width="230" height="110" as="geometry" />
+        </mxCell>
+        <mxCell id="qI9zLhb5zL1YSGXmJBYN-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="qI9zLhb5zL1YSGXmJBYN-8" target="iP2fBkS0vCjnL0VtTD-p-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="qI9zLhb5zL1YSGXmJBYN-8" value="&lt;div&gt;&lt;div&gt;&lt;div&gt;{&lt;/div&gt;&lt;div&gt;&amp;nbsp; &quot;id&quot;: &quot;78ffd0a8-c14a-4596-b567-cb409f59ba96&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &quot;mid&quot;: &quot;wamid.HBgNNjI4MjIyODIyMzUwMBUCABIYFDNFQjAxRkU5NjkxRTFGNkY5RTlGAAd&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &quot;client_id&quot;: &quot;&amp;lt;CLIENT_ID&amp;gt;&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &quot;channel_id&quot;: &quot;whatsapp-cloud&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &quot;account&quot;: {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;id&quot;: &quot;&amp;lt;ACCOUNT_ID&amp;gt;&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;account&quot;: &quot;&amp;lt;ACCOUNT&amp;gt;&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;account_title&quot;: &quot;&amp;lt;ACCOUNT_TITLE&amp;gt;&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; },&lt;/div&gt;&lt;div&gt;&amp;nbsp; &quot;data&quot;: {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;object&quot;: &quot;whatsapp_business_account&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &quot;entry&quot;: [&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;id&quot;: &quot;8856996819413533&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;changes&quot;: [&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;value&quot;: {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;messaging_product&quot;: &quot;whatsapp&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;metadata&quot;: {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;display_phone_number&quot;: &quot;16505553333&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;phone_number_id&quot;: &quot;27681414235104944&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; },&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;contacts&quot;: [&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;profile&quot;: {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;name&quot;: &quot;Kerry Fisher&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; },&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;wa_id&quot;: &quot;16315551234&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; }&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; ],&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;messages&quot;: [&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;id&quot;: &quot;wamid.HBgMNjI4NTY3NjUyMjAxFQIAEhggNzJERjJDRUM5M0JEOEVDQTMxRDE4NUY2NjM1 NTIwRTMA&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;type&quot;: &quot;interactive&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;from_&quot;: &quot;628567652201&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;context&quot;: {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;id&quot;: &quot;wamid.HBgMNjI4NTY3NjUyMjAxFQIAERgSMzQ4N0VDODNFQjkzNTMyMDQ4AA==&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; },&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;timestamp&quot;: &quot;1711388967&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;interactive&quot;: {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;type&quot;: &quot;nfm_reply&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;nfm_reply&quot;: {&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;body&quot;: &quot;Sent&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;name&quot;: &quot;flow&quot;,&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;response_json&quot;: &quot;{\&quot;flow_token\&quot;:\&quot;AQAAAAACS5FpgQ_cAAAAAD0QI3s.17\&quot;,\&quot;firstName\&quot;:\&quot;Kerry\&quot;,\&quot;lastN ame\&quot;:\&quot;Fisher\&quot;,\&quot;source\&quot;:\&quot;3\&quot;,\&quot;email\&quot;:\&quot;kerry@gmail.com\&quot;}&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; }&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; }&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; }&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; ]&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; },&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &quot;field&quot;: &quot;messages&quot;&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; }&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; ]&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; }&lt;/div&gt;&lt;div&gt;&amp;nbsp; &amp;nbsp; ]&lt;/div&gt;&lt;div&gt;&amp;nbsp; }&lt;/div&gt;&lt;div&gt;}&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;align=left;" vertex="1" parent="1">
+          <mxGeometry x="2460" y="-680" width="610" height="890" as="geometry" />
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
