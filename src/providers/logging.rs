@@ -1,9 +1,9 @@
 use chrono::{Local, Utc};
 use serde_json::{json, Value};
 use std::fs::{File, OpenOptions};
-use std::io::BufWriter;
+use std::io::{BufWriter, Write};
 use std::sync::{Arc, RwLock, OnceLock};
-use tracing::{event, Level};
+use tracing::Level;
 use tracing_subscriber::fmt::writer::MakeWriterExt;
 
 use crate::config::LoggerConfig;
@@ -33,7 +33,7 @@ impl<'a> tracing_subscriber::fmt::MakeWriter<'a> for ConfigurableFileWriter {
             Utc::now().format("%Y-%m-%d").to_string()
         };
         
-        let log_file_path = format!("{}/{}.{}.log", 
+        let log_file_path = format!("{}/{}.{}.error.log", 
             self.config.dir.trim_end_matches('/'), 
             self.config.file_name,
             today
@@ -127,7 +127,9 @@ impl StructuredLogger {
             "x-request-id": request_id
         });
 
-        event!(Level::ERROR, "{}", log_entry);
+        // Write directly to stdout and file to avoid tracing wrapper
+        println!("{}", log_entry);
+        Self::write_to_file(&log_entry.to_string());
     }
 
     pub fn log_info(
@@ -152,7 +154,9 @@ impl StructuredLogger {
         let request_id = request_id.unwrap_or(unique_id);
 
         let mut log_entry = json!({
-            "message": message,
+            "message": {
+                "info": message
+            },
             "timestamp": timestamp,
             "uniqueId": unique_id,
             "x-request-id": request_id
@@ -168,7 +172,8 @@ impl StructuredLogger {
             }
         }
 
-        event!(Level::INFO, "{}", log_entry);
+        // Write directly to stdout only for info logs
+        println!("{}", log_entry);
     }
 
     pub fn log_warning(
@@ -192,12 +197,48 @@ impl StructuredLogger {
         let request_id = request_id.unwrap_or(unique_id);
 
         let log_entry = json!({
-            "message": message,
+            "message": {
+                "warning": message
+            },
             "timestamp": timestamp,
             "uniqueId": unique_id,
             "x-request-id": request_id
         });
 
-        event!(Level::WARN, "{}", log_entry);
+        // Write directly to stdout and file to avoid tracing wrapper
+        println!("{}", log_entry);
+        Self::write_to_file(&log_entry.to_string());
+    }
+
+    fn write_to_file(log_line: &str) {
+        if let Some(config_lock) = LOGGER_CONFIG.get() {
+            if let Ok(config_guard) = config_lock.read() {
+                if let Some(config) = config_guard.as_ref() {
+                    let today = if config.local_time {
+                        Local::now().format("%Y-%m-%d").to_string()
+                    } else {
+                        Utc::now().format("%Y-%m-%d").to_string()
+                    };
+                    
+                    let log_file_path = format!("{}/{}.{}.error.log", 
+                        config.dir.trim_end_matches('/'), 
+                        config.file_name,
+                        today
+                    );
+                    
+                    if let Some(parent) = std::path::Path::new(&log_file_path).parent() {
+                        let _ = std::fs::create_dir_all(parent);
+                    }
+                    
+                    if let Ok(mut file) = OpenOptions::new()
+                        .create(true)
+                        .append(true)
+                        .open(&log_file_path) 
+                    {
+                        let _ = writeln!(file, "{}", log_line);
+                    }
+                }
+            }
+        }
     }
 }
