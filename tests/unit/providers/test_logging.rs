@@ -40,7 +40,7 @@ fn test_error_file_logging() {
         .filter_map(|entry| entry.ok())
         .filter(|entry| {
             entry.file_name().to_str().unwrap_or("").starts_with("test-custom-gateway")
-                && entry.file_name().to_str().unwrap_or("").ends_with(".log")
+                && entry.file_name().to_str().unwrap_or("").ends_with(".error.log")
         })
         .collect();
     
@@ -57,7 +57,7 @@ fn test_error_file_logging() {
     
     // Verify that local time is being used (Indonesian time should be UTC+7)
     let current_date = chrono::Local::now().format("%Y-%m-%d").to_string();
-    let expected_filename = format!("test-custom-gateway.{}.log", current_date);
+    let expected_filename = format!("test-custom-gateway.{}.error.log", current_date);
     assert_eq!(log_file.file_name().to_str().unwrap(), expected_filename);
     
     println!("✅ Log file created successfully: {:?}", log_file.file_name());
