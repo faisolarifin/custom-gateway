@@ -1,15 +1,16 @@
 use async_trait::async_trait;
-use http_body_util::{BodyExt, Full};
-use hyper::body::Bytes;
-use hyper::server::conn::http1;
-use hyper::service::service_fn;
-use hyper::{Method, Request, Response, StatusCode};
-use hyper_util::rt::TokioIo;
-use std::convert::Infallible;
+use axum::{
+    extract::{Request, State},
+    http::{HeaderMap, StatusCode},
+    response::{IntoResponse, Json},
+    routing::{get, post},
+    Router,
+};
+use serde_json::Value;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use tokio::net::TcpListener;
-use tracing::{error, info};
+use tokio::signal;
+use tracing::info;
 use uuid::Uuid;
 
 use crate::config::ServerConfig;
@@ -26,6 +27,13 @@ pub trait WebhookServerTrait {
 }
 
 #[derive(Clone)]
+pub struct AppState {
+    pub processor: Arc<dyn WebhookProcessorTrait + Send + Sync>,
+    pub app_config: crate::config::AppConfig,
+    pub server_config: ServerConfig,
+}
+
+#[derive(Clone)]
 pub struct WebhookServer {
     config: ServerConfig,
     processor: Arc<dyn WebhookProcessorTrait + Send + Sync>,
@@ -34,48 +42,24 @@ pub struct WebhookServer {
 
 impl WebhookServer {
     pub fn new(config: ServerConfig, processor: Arc<dyn WebhookProcessorTrait + Send + Sync>, app_config: crate::config::AppConfig) -> Self {
-        Self { config, processor, app_config }
+        Self { 
+            config, 
+            processor, 
+            app_config,
+        }
     }
 
-    async fn handle_webhook(
-        &self,
-        req: Request<hyper::body::Incoming>,
-    ) -> std::result::Result<Response<Full<Bytes>>, Infallible> {
-        let request_id = format!("req-{}", Uuid::new_v4());
-
-        StructuredLogger::log_info(
-            "Received webhook request",
-            Some(&request_id),
-            Some(&request_id),
-            Some(serde_json::json!({
-                "method": req.method().as_str(),
-                "uri": req.uri().to_string(),
-                "headers": req.headers().len()
-            })),
-        );
-
-        let response = match (req.method(), req.uri().path()) {
-            (&Method::POST, path) if path == self.config.webhook_path => {
-                self.process_webhook(req, &request_id).await
-            }
-            (&Method::GET, path) if path == self.config.webhook_path => {
-                self.handle_health_check(&request_id).await
-            }
-            _ => {
-                StructuredLogger::log_info(
-                    "Webhook path not found",
-                    Some(&request_id),
-                    Some(&request_id),
-                    None,
-                );
-                Ok(Response::builder()
-                    .status(StatusCode::NOT_FOUND)
-                    .body(Full::new(Bytes::from("Not Found")))
-                    .unwrap())
-            }
+    fn create_router(&self) -> Router {
+        let app_state = AppState {
+            processor: self.processor.clone(),
+            app_config: self.app_config.clone(),
+            server_config: self.config.clone(),
         };
 
-        response
+        Router::new()
+            .route(&self.config.webhook_path, post(webhook_handler))
+            .route(&self.config.webhook_path, get(health_check_handler))
+            .with_state(app_state)
     }
 
     fn should_process_payload(&self, body: &str, request_id: &str) -> bool {
@@ -131,120 +115,139 @@ impl WebhookServer {
             }
         }
     }
+}
 
-    async fn handle_health_check(
-        &self,
-        request_id: &str,
-    ) -> std::result::Result<Response<Full<Bytes>>, Infallible> {
+// Axum handler functions
+pub async fn webhook_handler(
+    State(state): State<AppState>,
+    headers: HeaderMap,
+    request: Request,
+) -> impl IntoResponse {
+    let request_id = format!("req-{}", Uuid::new_v4());
+
+    StructuredLogger::log_info(
+        "Received webhook request",
+        Some(&request_id),
+        Some(&request_id),
+        Some(serde_json::json!({
+            "method": "POST",
+            "uri": request.uri().to_string(),
+            "headers": headers.len()
+        })),
+    );
+
+    // Extract the body
+    let body = match axum::body::to_bytes(request.into_body(), usize::MAX).await {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            StructuredLogger::log_error(
+                &format!("Failed to read request body: {}", e),
+                Some(&request_id),
+                Some(&request_id),
+            );
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(serde_json::json!({
+                    "StatusCode": "06",
+                    "StatusDesc": "Bad Request"
+                }))
+            );
+        }
+    };
+
+    let body_str = String::from_utf8_lossy(&body);
+    let extracted_request_id = extract_request_id(&body_str);
+
+    // Check if payload should be processed
+    let server = WebhookServer {
+        config: state.server_config.clone(),
+        processor: state.processor.clone(),
+        app_config: state.app_config.clone(),
+    };
+
+    if !server.should_process_payload(&body_str, &extracted_request_id) {
         StructuredLogger::log_info(
-            "Health check request",
-            Some(request_id),
-            Some(request_id),
+            "Ignore send payload to client",
+            Some(&extracted_request_id),
+            Some(&extracted_request_id),
             None,
         );
-
-        let health_response = serde_json::json!({
-            "status": "success",
-            "message": "Application is healthy"
-        });
-
-        Ok(Response::builder()
-            .status(StatusCode::OK)
-            .header("content-type", "application/json")
-            .body(Full::new(Bytes::from(health_response.to_string())))
-            .unwrap())
+        return (
+            StatusCode::OK,
+            Json(serde_json::json!({
+                "StatusCode": "00",
+                "StatusDesc": "Success"
+            }))
+        );
     }
 
-    async fn process_webhook(
-        &self,
-        req: Request<hyper::body::Incoming>,
-        mut request_id: &str,
-    ) -> std::result::Result<Response<Full<Bytes>>, Infallible> {
-        // Extract headers for forwarding
-        let headers = req.headers().clone();
+    // Create webhook message for processing
+    let webhook_data = crate::models::WebhookMessage {
+        headers: headers.iter()
+            .map(|(k, v)| (k.as_str().to_string(), v.to_str().unwrap_or("").to_string()))
+            .collect(),
+        body: body_str.to_string(),
+    };
 
-        // Read the body
-        let body_bytes = match req.collect().await {
-            Ok(body) => body.to_bytes(),
-            Err(e) => {
-                StructuredLogger::log_error(
-                    &format!("Failed to read request body: {}", e),
-                    Some(request_id),
-                    Some(request_id),
-                );
-                return Ok(Response::builder()
-                .status(StatusCode::BAD_REQUEST)
-                .body(Full::new(Bytes::from("Bad Request")))
-                .unwrap());
-            }
-        };
-    
-         // Parse JSON payload to determine if it's DR or Inbound Flow
-        let body_str = String::from_utf8_lossy(&body_bytes);
-
-        // Change request_id
-        let extracted_id = extract_request_id(&body_str);
-        request_id = &extracted_id;
-
-        // Check if payload should be processed
-        if !self.should_process_payload(&body_str, request_id) {
+    // Process the webhook
+    match state.processor.process_webhook(webhook_data, &extracted_request_id).await {
+        Ok(webhook_response) => {
+            let http_status = StatusCode::from_u16(webhook_response.http_status)
+                .unwrap_or(StatusCode::BAD_GATEWAY);
+            
             StructuredLogger::log_info(
-                "Ignore send payload to client",
-                Some(request_id),
-                Some(request_id),
+                &format!("Webhook processed with HTTP status {}", webhook_response.http_status),
+                Some(&extracted_request_id),
+                Some(&extracted_request_id),
                 None,
             );
-            return Ok(Response::builder()
-                .status(StatusCode::OK)
-                .header("content-type", "application/json")
-                .body(Full::new(Bytes::from(r#"{"StatusCode":"00","StatusDesc":"Success"}"#)))
-                .unwrap());
+
+            // Parse the response body as JSON if possible
+            let response_json: Value = serde_json::from_str(&webhook_response.body)
+                .unwrap_or_else(|_| serde_json::json!({
+                    "StatusCode": "06",
+                    "StatusDesc": webhook_response.body
+                }));
+
+            (http_status, Json(response_json))
         }
+        Err(e) => {
+            StructuredLogger::log_error(
+                &format!("Failed to process webhook: {}", e),
+                Some(&extracted_request_id),
+                Some(&extracted_request_id),
+            );
 
-        // Create webhook message for processing
-        let webhook_data = crate::models::WebhookMessage {
-            headers: headers.iter()
-                .map(|(k, v)| (k.as_str().to_string(), v.to_str().unwrap_or("").to_string()))
-                .collect(),
-            body: body_str.to_string(),
-        };
-
-        // Process the webhook
-        match self.processor.process_webhook(webhook_data, request_id).await {
-            Ok(webhook_response) => {
-                // Langsung gunakan HTTP status dan body dari Permata Bank
-                let http_status = StatusCode::from_u16(webhook_response.http_status)
-                    .unwrap_or(StatusCode::BAD_GATEWAY);
-                
-                StructuredLogger::log_info(
-                    &format!("Webhook processed with HTTP status {}", webhook_response.http_status),
-                    Some(request_id),
-                    Some(request_id),
-                    None,
-                );
-
-                Ok(Response::builder()
-                    .status(http_status)
-                    .header("content-type", "application/json")
-                    .body(Full::new(Bytes::from(webhook_response.body)))
-                    .unwrap())
-            }
-            Err(e) => {
-                StructuredLogger::log_error(
-                    &format!("Failed to process webhook: {}", e),
-                    Some(request_id),
-                    Some(request_id),
-                );
-
-                let json_body = format!(r#"{{"StatusCode":"06","StatusDesc":"{}"}}"#, e);
-                Ok(Response::builder()
-                    .status(StatusCode::INTERNAL_SERVER_ERROR)
-                    .header("content-type", "application/json")
-                    .body(Full::new(Bytes::from(json_body)))
-                    .unwrap())
-            }
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({
+                    "StatusCode": "06",
+                    "StatusDesc": e.to_string()
+                }))
+            )
         }
     }
+}
+
+pub async fn health_check_handler(
+    State(_state): State<AppState>,
+) -> impl IntoResponse {
+    let request_id = format!("req-{}", Uuid::new_v4());
+    
+    StructuredLogger::log_info(
+        "Health check request",
+        Some(&request_id),
+        Some(&request_id),
+        None,
+    );
+
+    (
+        StatusCode::OK,
+        Json(serde_json::json!({
+            "status": "success",
+            "message": "Application is healthy"
+        }))
+    )
 }
 
 #[async_trait]
@@ -254,9 +257,7 @@ impl WebhookServerTrait for WebhookServer {
             .parse()
             .map_err(|e| AppError::configuration(format!("Invalid server address: {}", e)))?;
 
-        let listener = TcpListener::bind(addr)
-            .await
-            .map_err(|e| AppError::configuration(format!("Failed to bind to address {}: {}", addr, e)))?;
+        let app = self.create_router();
 
         info!("Webhook server listening on {}", addr);
         StructuredLogger::log_info(
@@ -269,29 +270,16 @@ impl WebhookServerTrait for WebhookServer {
             })),
         );
 
-        loop {
-            let (stream, peer_addr) = match listener.accept().await {
-                Ok(conn) => conn,
-                Err(e) => {
-                    error!("Failed to accept connection: {}", e);
-                    continue;
-                }
-            };
+        let listener = tokio::net::TcpListener::bind(addr)
+            .await
+            .map_err(|e| AppError::configuration(format!("Failed to bind to address {}: {}", addr, e)))?;
 
-            let io = TokioIo::new(stream);
-            let server_clone = self.clone();
+        axum::serve(listener, app)
+            .with_graceful_shutdown(shutdown_signal())
+            .await
+            .map_err(|e| AppError::error(format!("Server error: {}", e)))?;
 
-            tokio::task::spawn(async move {
-                let service = service_fn(move |req| {
-                    let server = server_clone.clone();
-                    async move { server.handle_webhook(req).await }
-                });
-
-                if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
-                    error!("Error serving connection from {}: {}", peer_addr, err);
-                }
-            });
-        }
+        Ok(())
     }
 
     async fn shutdown(&self) -> Result<()> {
@@ -303,4 +291,35 @@ impl WebhookServerTrait for WebhookServer {
         );
         Ok(())
     }
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+
+    StructuredLogger::log_info(
+        "Signal received, starting graceful shutdown",
+        None,
+        None,
+        None,
+    );
 }

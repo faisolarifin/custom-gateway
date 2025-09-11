@@ -57,3 +57,9 @@ pub struct PermataWebhookResponse {
     #[serde(rename = "StatusDesc")]
     pub status_desc: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebhookResponse {
+    pub http_status: u16,
+    pub body: String,
+}
