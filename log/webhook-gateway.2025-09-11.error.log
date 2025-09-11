@@ -1,0 +1,1 @@
+{"message":{"error":"Received Error 403 from Permata Bank for: {\r\n\t\"ErrorCode\": \"403\",\r\n\t\"ErrorDescription\" : \"Signature Not Valid\"\r\n}"},"timestamp":"2025-09-11 13:10:48.364","uniqueId":"req-123","x-request-id":"req-123"}
