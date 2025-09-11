@@ -6,7 +6,7 @@ use tokio::time::sleep;
 use crate::config::AppConfig;
 use crate::services::{LoginHandler, TelegramAlertService};
 use crate::providers::StructuredLogger;
-use crate::utils::{error::Result, generate_signature};
+use crate::utils::{error::Result, generate_signature, compact_json};
 
 #[derive(Debug, Clone)]
 pub struct HttpWebhookResponse {
@@ -65,7 +65,10 @@ impl PermataCallbackStatusClient {
                             unique_id,
                             x_request_id,
                         );
-                        return Err(e);
+                        return Ok(HttpWebhookResponse {
+                            status_code: 401,
+                            body: Some(e.to_string()).unwrap_or_default(),
+                        });
                     }
                     
                     last_error = Some(e);
@@ -109,7 +112,7 @@ impl PermataCallbackStatusClient {
 
         // Generate signature using permata_static_key:timestamp:webhook_body
         // First, compact the JSON to remove spaces and newlines
-        let compacted_body = webhook_body.chars().filter(|c| !c.is_whitespace()).collect::<String>();
+        let compacted_body = compact_json(webhook_body)?;
         let signature = generate_signature(
             &self.config.permata_bank_login.permata_static_key,
             &access_token,

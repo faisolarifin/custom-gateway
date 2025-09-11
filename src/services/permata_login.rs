@@ -216,9 +216,7 @@ impl LoginHandler {
                 );
             }
             
-            return Err(crate::utils::error::AppError::authentication_failed(
-                format!("Login failed: {} - {}", status, body)
-            ));
+            return Err(crate::utils::error::AppError::error(body));
         }
 
         let token_response: TokenResponse = response.json().await?;

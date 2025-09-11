@@ -82,17 +82,7 @@ impl WebhookProcessorTrait for WebhookProcessor {
                     );
                 }
                 
-                // Check if this is an authentication error - handle gracefully
-                let error_msg = e.to_string();
-                if error_msg.contains("Authentication failed") || error_msg.contains("Login failed") {                    
-                    // Return a 401 Unauthorized to indicate upstream authentication issues
-                    Ok(WebhookResponse {
-                        http_status: 401,
-                        body: format!(r#"{{"error": "Authentication failed", "message": "{}"}}"#, error_msg),
-                    })
-                } else {
-                    Err(e)
-                }
+                Err(e)
             }
         }
     }
