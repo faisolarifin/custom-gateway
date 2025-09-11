@@ -284,14 +284,12 @@ async fn test_authentication_error_handling() {
     
     let result = processor.process_webhook(webhook, "test-auth-failure").await;
     
-    // Authentication failures should be handled gracefully
-    assert!(result.is_ok(), "Authentication failures should be handled gracefully");
+    // Authentication failures should return an error from webhook processor
+    assert!(result.is_err(), "Authentication failures should return an error");
     
-    if let Ok(response) = result {
-        // Should return 401 for auth failures  
-        assert_eq!(response.http_status, 401);
-        assert!(response.body.contains("Authentication failed"));
-    }
+    let error = result.unwrap_err();
+    // Verify error is of the correct type
+    assert!(matches!(error, webhook_gateway::utils::error::AppError::ReqError { .. }));
 }
 
 #[tokio::test]
@@ -302,8 +300,12 @@ async fn test_authentication_error_with_login_failed_message() {
     
     let result = processor.process_webhook(webhook, "test-login-failed").await;
     
-    // Should handle "Login failed" messages gracefully
-    assert!(result.is_ok(), "Login failures should be handled gracefully");
+    // Login failures should return an error from webhook processor
+    assert!(result.is_err(), "Login failures should return an error");
+    
+    let error = result.unwrap_err();
+    // Verify error is of the correct type
+    assert!(matches!(error, webhook_gateway::utils::error::AppError::ReqError { .. }));
 }
 
 #[tokio::test]

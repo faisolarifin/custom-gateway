@@ -4,23 +4,21 @@ server:
   webhook_path: "/webhook"
 
 webclient:
-  timeout: 30
+  timeout: 3
   max_retries: 1
   retry_delay: 1       # in seconds
 
 permata_bank_login:
-  permata_static_key: "WD628b40f7f480f6445279eeb9b76003"
-  api_key: "b6e1231e-3f15-48f1-aed6-d72986ea1ce9"
+  permata_static_key: "WAP000e331ccc768a4da883b80DW0035"
+  api_key: "a3550b7b-fb89-472a-b6c8-6d4ae4a543f5"
 
-  # token_url: "https://api.pbdevtest.com/apiservice/oauth/token"
-  token_url: "https://webhook.site/14899f0f-d6fb-4562-b2b3-3d2f2a8a3b07"
-  username: "73e843cd-0b28-4f98-a262-b5dbdf9ee549"
-  password: "2d45705c-e992-4bd8-b7fe-7d2d1dc6c4c1"
+  token_url: "https://api.pbdevtest.com/apiservice/oauth/token"
+  username: "2bc21968-3188-4682-94be-668416cf216"
+  password: "5792acf1-d05e-4e5b-b33a-3a9101d5cc9f"
   login_payload: "grant_type=client_credentials"
 
 permata_bank_webhook:
-  # callbackstatus_url: "https://api.pbdevtest.com/apiservice/wa/callbackstatus" 
-  callbackstatus_url: "https://webhook.site/8282976c-bd91-49b3-93ed-86ef25069190" 
+  callbackstatus_url: "https://api.pbdevtest.com/apiservice/wa/callbackstatus" 
   organizationname: "WD62876003"
 
 token_scheduler:

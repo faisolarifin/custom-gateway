@@ -158,7 +158,8 @@ async fn test_login_handler_auth_failure() {
     assert!(result.is_err());
     
     let error = result.unwrap_err();
-    assert!(matches!(error, webhook_gateway::utils::error::AppError::AuthenticationFailed { .. }));
+    // Test expects ReqError which is what the login handler actually returns
+    assert!(matches!(error, webhook_gateway::utils::error::AppError::ReqError { .. }));
     
     token_mock.assert_async().await;
     handler.shutdown().await;

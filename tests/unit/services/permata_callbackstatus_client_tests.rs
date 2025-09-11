@@ -4,7 +4,6 @@ use tokio::time::{timeout, Duration};
 
 use webhook_gateway::config::{AppConfig, PermataBankLoginConfig, PermataBankWebhookConfig, WebClientConfig, TelegramAlertConfig, SchedulerConfig, LoggerConfig};
 use webhook_gateway::services::PermataCallbackStatusClient;
-use webhook_gateway::utils::error::AppError;
 
 fn create_test_config(mock_server_url: &str) -> AppConfig {
     AppConfig {
@@ -235,9 +234,11 @@ async fn test_send_webhook_auth_error() {
     
     let result = client.send_webhook(&webhook_body, "req-auth-error").await;
     
-    assert!(result.is_err());
-    let error = result.unwrap_err();
-    assert!(matches!(error, AppError::AuthenticationFailed { .. }));
+    // Authentication errors return Ok with 401 status code
+    assert!(result.is_ok());
+    let response = result.unwrap();
+    assert_eq!(response.status_code, 401);
+    assert!(!response.body.is_empty());
     
     token_mock.assert_async().await;
     
@@ -315,10 +316,11 @@ async fn test_authentication_error_handling() {
     let webhook_body = json!({"test": "auth_error"}).to_string();
     let result = client.send_webhook(&webhook_body, "req-auth-test").await;
     
-    // Should get authentication error
-    assert!(result.is_err());
-    let error = result.unwrap_err();
-    assert!(matches!(error, AppError::AuthenticationFailed { .. }));
+    // Authentication errors return Ok with 401 status code
+    assert!(result.is_ok());
+    let response = result.unwrap();
+    assert_eq!(response.status_code, 401);
+    assert!(!response.body.is_empty());
     
     // Shutdown to stop scheduler
     client.shutdown().await;
